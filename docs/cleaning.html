@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>清潔人員排班表・富來大郡社區</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="stylesheet" href="assets/site.css">
 <style>
   .toolbar {
     display: flex; flex-wrap: wrap; align-items: end; gap: 1.2rem;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
     padding: 1.1rem 1.4rem; box-shadow: var(--shadow);
   }
   .control { display: flex; flex-direction: column; gap: .35rem; }
@@ -19,29 +20,29 @@
   .pair { display: flex; gap: .4rem; }
   .pair select {
     font-family: var(--font-body); font-size: .92rem; color: var(--ink);
-    background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
     padding: .45rem .6rem; min-width: 5.6rem;
   }
   .pair select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .ghost-btn {
     font-family: var(--font-body); font-size: .84rem; color: var(--accent);
-    background: transparent; border: 1px solid var(--line); border-radius: 6px;
+    background: transparent; border: 1px solid var(--line); border-radius: 10px;
     padding: .55rem .95rem; cursor: pointer; margin-inline-start: auto; align-self: center;
   }
   .ghost-btn:hover { background: var(--line-soft); }
 
   .banner-stack { display: flex; flex-direction: column; gap: .55rem; }
-  .banner { border-radius: 8px; padding: .7rem 1.1rem; font-size: .87rem; line-height: 1.6; border: 1px solid var(--line); text-align: center; }
+  .banner { border-radius: 12px; padding: .7rem 1.1rem; font-size: .87rem; line-height: 1.6; border: 1px solid var(--line); text-align: center; }
   .banner.ok { background: var(--ok-bg); }
   .banner.warn { background: var(--warn-bg); color: var(--warn-ink); }
   .banner strong { color: inherit; }
 
-  .overview-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow-x: auto; padding: .2rem; }
+  .overview-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); overflow-x: auto; padding: .2rem; }
   table.overview { width: 100%; border-collapse: collapse; min-width: 560px; table-layout: fixed; }
   table.overview th, table.overview td { border: 1px solid var(--line-soft); padding: .55rem .3rem; text-align: center; }
   table.overview thead th { background: var(--header-bg); color: var(--header-ink); font-weight: 600; font-size: .9rem; }
   table.overview tbody th { text-align: left; padding-left: .8rem; font-size: .8rem; color: var(--ink-soft); font-weight: 600; }
-  .badge { display: inline-block; font-size: .78rem; font-weight: 700; border-radius: 5px; padding: .15rem .5rem; }
+  .badge { display: inline-block; font-size: .78rem; font-weight: 700; border-radius: 8px; padding: .15rem .5rem; }
   .badge.on.jia { color: var(--jia); background: var(--jia-bg); }
   .badge.on.yi { color: var(--yi); background: var(--yi-bg); }
   .badge.off { color: var(--off); background: var(--off-bg); }
@@ -55,7 +56,7 @@
   .person-pill.jia { color: var(--jia); background: var(--jia-bg); }
   .person-pill.yi { color: var(--yi); background: var(--yi-bg); }
 
-  .sheet-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow-x: auto; }
+  .sheet-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); overflow-x: auto; }
   table.daysheet { width: 100%; border-collapse: collapse; min-width: 820px; table-layout: fixed; }
   table.daysheet col.timecol { width: 6.5rem; }
   table.daysheet th, table.daysheet td { border: 1px solid var(--line-soft); padding: .6rem .55rem; text-align: center; vertical-align: middle; }
@@ -73,12 +74,12 @@
   table.daysheet td.taskcell .gap-note { display: block; margin-top: .35rem; font-size: .74rem; color: var(--warn-ink); }
   table.daysheet td.offcell { color: var(--off); font-size: .84rem; background: var(--off-bg); font-weight: 600; }
   tr.break-row td { background: var(--line-soft); color: var(--ink-soft); font-size: .8rem; }
-  .tag { display: inline-block; font-weight: 700; font-size: .82rem; border-radius: 4px; padding: 0 .35rem; margin-right: .1rem; }
+  .tag { display: inline-block; font-weight: 700; font-size: .82rem; border-radius: 6px; padding: 0 .35rem; margin-right: .1rem; }
   .tag.jia { color: var(--jia); background: var(--jia-bg); }
   .tag.yi { color: var(--yi); background: var(--yi-bg); }
 
   .notes {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
     padding: 1.2rem 1.5rem; box-shadow: var(--shadow);
   }
   .notes h2 { font-family: var(--font-display); font-size: 1.05rem; margin: 0 0 .6rem; }
@@ -95,17 +96,17 @@
   table.calendar td.cal-empty { background: var(--line-soft); }
   .cal-date { font-family: var(--font-mono); font-size: .8rem; color: var(--ink-soft); margin-bottom: .3rem; }
   .cal-tags { display: flex; flex-direction: column; gap: 3px; align-items: center; }
-  .cal-tag { font-size: .68rem; font-weight: 600; border-radius: 4px; padding: 1px 6px; line-height: 1.4; }
+  .cal-tag { font-size: .68rem; font-weight: 600; border-radius: 6px; padding: 1px 6px; line-height: 1.4; }
   .cal-tag.jia { color: var(--jia); background: var(--jia-bg); }
   .cal-tag.yi { color: var(--yi); background: var(--yi-bg); }
 
   details.source-images {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
     padding: 1rem 1.3rem; box-shadow: var(--shadow);
   }
   details.source-images summary { cursor: pointer; font-size: .88rem; color: var(--accent); font-weight: 600; }
   details.source-images .imgs { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
-  details.source-images img { max-width: 100%; width: 460px; border: 1px solid var(--line); border-radius: 8px; }
+  details.source-images img { max-width: 100%; width: 460px; border: 1px solid var(--line); border-radius: 12px; }
 
   @media (max-width: 640px) {
     .toolbar { justify-content: center; }
