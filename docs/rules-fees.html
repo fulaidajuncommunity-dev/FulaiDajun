@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>社區規約與費用・富來大郡社區</title>
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .fee-table { width: 100%; border-collapse: collapse; }
+  .fee-table th, .fee-table td {
+    border: 1px solid var(--line-soft); padding: .6rem .8rem; text-align: left; font-size: .87rem;
+  }
+  .fee-table thead th { background: var(--header-bg); color: var(--header-ink); font-weight: 600; }
+  .fee-table td.amount { font-family: var(--font-mono); color: var(--accent); font-weight: 600; }
+  .faq { display: flex; flex-direction: column; gap: .9rem; }
+  .faq-item h3 { font-family: var(--font-display); font-size: .95rem; margin: 0 0 .3rem; }
+  .faq-item p { margin: 0; font-size: .85rem; color: var(--ink-soft); line-height: 1.65; }
+  .doc-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    border: 1px dashed var(--line); border-radius: 8px; padding: .8rem 1rem; }
+  .doc-row span { font-size: .87rem; color: var(--ink); }
+</style>
+</head>
+<body data-page="rules-fees">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">富來大郡社區</span>
+      <span class="brand-sub">FU LAI DA JUN</span>
+    </a>
+    <button class="nav-toggle" aria-label="開啟選單" aria-expanded="false">☰</button>
+    <nav class="site-nav" aria-label="主導覽">
+      <a href="index.html" data-page="home">首頁</a>
+      <a href="announcements.html" data-page="announcements">社區公告欄</a>
+      <a href="about.html" data-page="about">關於社區／管委會</a>
+      <a href="rules-fees.html" data-page="rules-fees">規約與費用</a>
+      <a href="facilities.html" data-page="facilities">設施與服務</a>
+      <a href="cleaning.html" data-page="cleaning">清潔排班表</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">財務與規範</p>
+    <h1>社區規約與費用</h1>
+    <p class="lede">管理費收費標準、繳費方式與社區規約文件，讓住戶清楚了解社區財務與規範。</p>
+    <p class="placeholder-note" style="align-self:center;">社區規約文件與常見問題內容仍待管委會確認</p>
+  </header>
+
+  <section class="section">
+    <h2>管理費收費標準</h2>
+    <div style="overflow-x:auto;">
+      <table class="fee-table">
+        <thead><tr><th>類別</th><th>計費方式</th><th>費率</th></tr></thead>
+        <tbody>
+          <tr><td>住宅／店面（統一費率）</td><td>每坪／每月</td><td class="amount">NT$ 80 / 坪</td></tr>
+          <tr><td>汽車清潔費</td><td>每車位／每月</td><td class="amount">NT$ 300 / 位</td></tr>
+          <tr><td>機車清潔費</td><td>每車位／每月</td><td class="amount">NT$ 100 / 位</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>繳費方式</h2>
+    <ul style="margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:.4rem;">
+      <li style="font-size:.87rem;color:var(--ink-soft);line-height:1.6;"><strong style="color:var(--ink);">銀行轉帳</strong>：轉入管委會指定帳戶，轉帳後請提供末五碼供對帳。</li>
+      <li style="font-size:.87rem;color:var(--ink-soft);line-height:1.6;"><strong style="color:var(--ink);">超商代收</strong>：憑管理費繳費單至各大超商繳納。</li>
+      <li style="font-size:.87rem;color:var(--ink-soft);line-height:1.6;"><strong style="color:var(--ink);">信用卡</strong>：可透過信用卡繳納管理費，詳細作業方式請洽管理室。</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>社區規約文件</h2>
+    <div class="doc-row">
+      <span>富來大郡社區住戶規約全文（PDF）</span>
+      <span class="placeholder-note">文件準備中</span>
+    </div>
+    <div class="doc-row">
+      <span>公共設施使用管理辦法（PDF）</span>
+      <span class="placeholder-note">文件準備中</span>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>常見問題</h2>
+    <div class="faq">
+      <div class="faq-item">
+        <h3>管理費逾期未繳會如何處理？</h3>
+        <p>依社區規約規定，逾期未繳將自次月起加收滯納金，詳細比例請參閱住戶規約全文。</p>
+      </div>
+      <div class="faq-item">
+        <h3>可以線上查詢繳費紀錄嗎？</h3>
+        <p>目前如需查詢個人繳費紀錄，請於辦公時間內洽管理室或財務委員協助查詢。</p>
+      </div>
+      <div class="faq-item">
+        <h3>裝修施工需要哪些申請程序？</h3>
+        <p>住戶進行室內裝修前，請先向管理室提出施工申請並繳交保證金，詳細規定請參閱公共設施使用管理辦法。</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <h4>富來大郡社區管理委員會</h4>
+      <p>新竹縣湖口鄉德和路10巷86號</p>
+    </div>
+    <div>
+      <h4>辦公時間</h4>
+      <p>週一至週五 08:30–17:30</p>
+    </div>
+    <div>
+      <h4>聯絡方式</h4>
+      <ul>
+        <li>電話：03-5590857</li>
+      </ul>
+    </div>
+    <div class="copyright">© 2026 富來大郡社區管理委員會・網站內容部分為示意資料，正式資訊請以管委會公告為準</div>
+  </div>
+</footer>
+<script src="assets/nav.js"></script>
+</body>
+</html>

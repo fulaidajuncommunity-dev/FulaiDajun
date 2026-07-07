@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>社區公告欄・富來大郡社區</title>
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .notice-list { display: flex; flex-direction: column; gap: 1rem; }
+  .notice-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: var(--shadow); padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: .5rem;
+  }
+  .notice-head { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+  .notice-date { font-family: var(--font-mono); font-size: .78rem; color: var(--ink-soft); }
+  .notice-card h3 { font-family: var(--font-display); font-size: 1.05rem; margin: 0; }
+  .notice-card p { margin: 0; font-size: .87rem; color: var(--ink-soft); line-height: 1.65; }
+</style>
+</head>
+<body data-page="announcements">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">富來大郡社區</span>
+      <span class="brand-sub">FU LAI DA JUN</span>
+    </a>
+    <button class="nav-toggle" aria-label="開啟選單" aria-expanded="false">☰</button>
+    <nav class="site-nav" aria-label="主導覽">
+      <a href="index.html" data-page="home">首頁</a>
+      <a href="announcements.html" data-page="announcements">社區公告欄</a>
+      <a href="about.html" data-page="about">關於社區／管委會</a>
+      <a href="rules-fees.html" data-page="rules-fees">規約與費用</a>
+      <a href="facilities.html" data-page="facilities">設施與服務</a>
+      <a href="cleaning.html" data-page="cleaning">清潔排班表</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">最新消息</p>
+    <h1>社區公告欄</h1>
+    <p class="lede">管理委員會發布的公告、活動通知與維修資訊，將公布於此。</p>
+    <p class="placeholder-note" style="align-self:center;">以下為示意內容，正式公告請以管委會實際發布為準</p>
+  </header>
+
+  <div class="notice-list">
+    <article class="notice-card">
+      <div class="notice-head"><span class="tag-pill notice">公告</span><span class="notice-date">2026-07-05</span></div>
+      <h3>2026 年度第三季管理費收繳通知</h3>
+      <p>本社區第三季管理費將於 7 月底開始收繳，請住戶留意繳費期限，逾期未繳將依規約收取滯納金，詳細金額請參閱「社區規約與費用」頁面。</p>
+    </article>
+    <article class="notice-card">
+      <div class="notice-head"><span class="tag-pill maint">停水停電</span><span class="notice-date">2026-07-03</span></div>
+      <h3>地下室配電設備歲修停電公告</h3>
+      <p>因應年度配電設備保養，本週六上午 09:00–12:00 地下停車場照明將短暫中斷，請住戶提前規劃車輛進出時間，造成不便敬請見諒。</p>
+    </article>
+    <article class="notice-card">
+      <div class="notice-head"><span class="tag-pill event">活動</span><span class="notice-date">2026-06-28</span></div>
+      <h3>社區中庭親子園遊會</h3>
+      <p>管委會將於中庭花園舉辦親子園遊會，設有闖關遊戲與親子手作攤位，歡迎住戶攜家帶眷共襄盛舉，活動詳情將另行公布。</p>
+    </article>
+    <article class="notice-card">
+      <div class="notice-head"><span class="tag-pill maint">維修</span><span class="notice-date">2026-06-20</span></div>
+      <h3>電梯例行保養公告</h3>
+      <p>A 棟電梯將進行例行保養作業，作業期間電梯將暫停使用，請住戶改搭其他棟別電梯或使用樓梯，保養完成後將立即恢復正常運作。</p>
+    </article>
+    <article class="notice-card">
+      <div class="notice-head"><span class="tag-pill notice">公告</span><span class="notice-date">2026-06-10</span></div>
+      <h3>資源回收分類提醒</h3>
+      <p>為維護社區環境整潔，請住戶依垃圾分類規定將一般垃圾、資源回收與廚餘分開置放於指定回收區，感謝住戶配合。</p>
+    </article>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <h4>富來大郡社區管理委員會</h4>
+      <p>新竹縣湖口鄉德和路10巷86號</p>
+    </div>
+    <div>
+      <h4>辦公時間</h4>
+      <p>週一至週五 08:30–17:30</p>
+    </div>
+    <div>
+      <h4>聯絡方式</h4>
+      <ul>
+        <li>電話：03-5590857</li>
+      </ul>
+    </div>
+    <div class="copyright">© 2026 富來大郡社區管理委員會・網站內容部分為示意資料，正式資訊請以管委會公告為準</div>
+  </div>
+</footer>
+<script src="assets/nav.js"></script>
+</body>
+</html>

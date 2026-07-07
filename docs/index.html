@@ -3,500 +3,128 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>富來大郡社區・清潔人員排班表</title>
-<style>
-  :root {
-    --paper: #f2f5f2;
-    --surface: #ffffff;
-    --ink: #1f2a25;
-    --ink-soft: #5c6b62;
-    --line: #dbe2dc;
-    --line-soft: #eef1ee;
-    --header-bg: #1f2a25;
-    --header-ink: #f2f5f2;
-    --accent: #2f6f5e;
-    --jia: #3d6fa3;
-    --jia-bg: #eaf1f8;
-    --yi: #b8813a;
-    --yi-bg: #faf1e3;
-    --off: #9aa39c;
-    --off-bg: #eceeec;
-    --ok-bg: #e9f2ec;
-    --warn-bg: #fbf2e2;
-    --warn-ink: #8a5a12;
-    --shadow: 0 1px 2px rgba(31,42,37,.06), 0 6px 20px -8px rgba(31,42,37,.12);
-    --font-display: ui-serif, "Noto Serif TC", "Iowan Old Style", "Songti TC", Georgia, serif;
-    --font-body: -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
-    --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --paper: #121815; --surface: #19211d; --ink: #e6ece8; --ink-soft: #9db0a6;
-      --line: #2c3831; --line-soft: #202a25; --header-bg: #0d1311; --header-ink: #e6ece8;
-      --accent: #5fae90; --jia: #86b3e6; --jia-bg: #1c2a36; --yi: #e3ac6d; --yi-bg: #332714;
-      --off: #7c8880; --off-bg: #232d28;
-      --ok-bg: #1e2d24; --warn-bg: #362c1c; --warn-ink: #e3ac6d;
-      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px -10px rgba(0,0,0,.5);
-    }
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--font-body);
-    -webkit-font-smoothing: antialiased;
-  }
-  .page {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2.5rem 1.25rem 4rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.6rem;
-  }
-  .masthead { text-align: center; display: flex; flex-direction: column; gap: .4rem; }
-  .eyebrow {
-    font-family: var(--font-mono); font-size: .74rem; letter-spacing: .14em;
-    text-transform: uppercase; color: var(--accent); margin: 0;
-  }
-  h1 { font-family: var(--font-display); font-weight: 600; font-size: 1.9rem; margin: 0; text-wrap: balance; }
-  .lede { margin: .1rem auto 0; max-width: 58ch; color: var(--ink-soft); font-size: .92rem; line-height: 1.65; }
-
-  .toolbar {
-    display: flex; flex-wrap: wrap; align-items: end; gap: 1.2rem;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    padding: 1.1rem 1.4rem; box-shadow: var(--shadow);
-  }
-  .control { display: flex; flex-direction: column; gap: .35rem; }
-  .control label { font-size: .72rem; letter-spacing: .04em; color: var(--ink-soft); }
-  .control label .who { font-weight: 700; }
-  .control label .who.jia { color: var(--jia); }
-  .control label .who.yi { color: var(--yi); }
-  .pair { display: flex; gap: .4rem; }
-  .pair select {
-    font-family: var(--font-body); font-size: .92rem; color: var(--ink);
-    background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
-    padding: .45rem .6rem; min-width: 5.6rem;
-  }
-  .pair select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .ghost-btn {
-    font-family: var(--font-body); font-size: .84rem; color: var(--accent);
-    background: transparent; border: 1px solid var(--line); border-radius: 6px;
-    padding: .55rem .95rem; cursor: pointer; margin-inline-start: auto; align-self: center;
-  }
-  .ghost-btn:hover { background: var(--line-soft); }
-
-  .banner-stack { display: flex; flex-direction: column; gap: .55rem; }
-  .banner { border-radius: 8px; padding: .7rem 1.1rem; font-size: .87rem; line-height: 1.6; border: 1px solid var(--line); text-align: center; }
-  .banner.ok { background: var(--ok-bg); }
-  .banner.warn { background: var(--warn-bg); color: var(--warn-ink); }
-  .banner strong { color: inherit; }
-
-  .overview-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow-x: auto; padding: .2rem; }
-  table.overview { width: 100%; border-collapse: collapse; min-width: 560px; table-layout: fixed; }
-  table.overview th, table.overview td { border: 1px solid var(--line-soft); padding: .55rem .3rem; text-align: center; }
-  table.overview thead th { background: var(--header-bg); color: var(--header-ink); font-weight: 600; font-size: .9rem; }
-  table.overview tbody th { text-align: left; padding-left: .8rem; font-size: .8rem; color: var(--ink-soft); font-weight: 600; }
-  .badge { display: inline-block; font-size: .78rem; font-weight: 700; border-radius: 5px; padding: .15rem .5rem; }
-  .badge.on.jia { color: var(--jia); background: var(--jia-bg); }
-  .badge.on.yi { color: var(--yi); background: var(--yi-bg); }
-  .badge.off { color: var(--off); background: var(--off-bg); }
-  .solo-tag { display: block; margin-top: .3rem; font-size: .68rem; color: var(--warn-ink); font-weight: 600; }
-
-  .sheet-section { display: flex; flex-direction: column; gap: .6rem; }
-  .sheet-title { display: flex; align-items: baseline; gap: .55rem; }
-  .sheet-title h2 { font-family: var(--font-display); font-size: 1.15rem; margin: 0; }
-  .sheet-title .sub { font-size: .78rem; color: var(--ink-soft); }
-  .person-pill { font-size: .74rem; font-weight: 700; border-radius: 999px; padding: .2rem .7rem; }
-  .person-pill.jia { color: var(--jia); background: var(--jia-bg); }
-  .person-pill.yi { color: var(--yi); background: var(--yi-bg); }
-
-  .sheet-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow-x: auto; }
-  table.daysheet { width: 100%; border-collapse: collapse; min-width: 820px; table-layout: fixed; }
-  table.daysheet col.timecol { width: 6.5rem; }
-  table.daysheet th, table.daysheet td { border: 1px solid var(--line-soft); padding: .6rem .55rem; text-align: center; vertical-align: middle; }
-  table.daysheet thead th { background: var(--header-bg); color: var(--header-ink); font-weight: 600; font-size: .9rem; }
-  table.daysheet thead th.corner { font-family: var(--font-mono); font-size: .76rem; font-weight: 500; }
-  table.daysheet thead tr.status-row th { font-weight: 500; font-size: .76rem; padding-top: 0; padding-bottom: .55rem; }
-  table.daysheet tbody th.timelabel {
-    font-family: var(--font-mono); font-size: .78rem; color: var(--ink-soft); font-weight: 500;
-    white-space: normal; line-height: 1.5; background: var(--line-soft);
-  }
-  table.daysheet td.taskcell { font-size: .84rem; line-height: 1.55; color: var(--ink); text-align: left; padding: .7rem .9rem; }
-  table.daysheet td.taskcell .note { display: block; margin-top: .4rem; font-size: .74rem; color: var(--ink-soft); }
-  table.daysheet td.taskcell .person-line { display: block; }
-  table.daysheet td.taskcell .person-line + .person-line { margin-top: .55rem; padding-top: .55rem; border-top: 1px dashed var(--line); }
-  table.daysheet td.taskcell .gap-note { display: block; margin-top: .35rem; font-size: .74rem; color: var(--warn-ink); }
-  table.daysheet td.offcell { color: var(--off); font-size: .84rem; background: var(--off-bg); font-weight: 600; }
-  tr.break-row td { background: var(--line-soft); color: var(--ink-soft); font-size: .8rem; }
-  .tag { display: inline-block; font-weight: 700; font-size: .82rem; border-radius: 4px; padding: 0 .35rem; margin-right: .1rem; }
-  .tag.jia { color: var(--jia); background: var(--jia-bg); }
-  .tag.yi { color: var(--yi); background: var(--yi-bg); }
-
-  .notes {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    padding: 1.2rem 1.5rem; box-shadow: var(--shadow);
-  }
-  .notes h2 { font-family: var(--font-display); font-size: 1.05rem; margin: 0 0 .6rem; }
-  .notes ul { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: .4rem; }
-  .notes li { font-size: .86rem; color: var(--ink-soft); line-height: 1.6; }
-  .notes li strong { color: var(--ink); font-weight: 600; }
-
-  .calendar-wrap { overflow-x: auto; }
-  table.calendar { width: 100%; border-collapse: collapse; min-width: 480px; table-layout: fixed; }
-  table.calendar th, table.calendar td {
-    border: 1px solid var(--line-soft); padding: .4rem; text-align: center; vertical-align: top; height: 3.9rem;
-  }
-  table.calendar thead th { background: var(--header-bg); color: var(--header-ink); font-weight: 600; font-size: .85rem; }
-  table.calendar td.cal-empty { background: var(--line-soft); }
-  .cal-date { font-family: var(--font-mono); font-size: .8rem; color: var(--ink-soft); margin-bottom: .3rem; }
-  .cal-tags { display: flex; flex-direction: column; gap: 3px; align-items: center; }
-  .cal-tag { font-size: .68rem; font-weight: 600; border-radius: 4px; padding: 1px 6px; line-height: 1.4; }
-  .cal-tag.jia { color: var(--jia); background: var(--jia-bg); }
-  .cal-tag.yi { color: var(--yi); background: var(--yi-bg); }
-
-  details.source-images {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    padding: 1rem 1.3rem; box-shadow: var(--shadow);
-  }
-  details.source-images summary { cursor: pointer; font-size: .88rem; color: var(--accent); font-weight: 600; }
-  details.source-images .imgs { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
-  details.source-images img { max-width: 100%; width: 460px; border: 1px solid var(--line); border-radius: 8px; }
-
-  footer.page-footer { text-align: center; font-size: .76rem; color: var(--ink-soft); }
-
-  @media (max-width: 640px) {
-    h1 { font-size: 1.5rem; }
-    .toolbar { justify-content: center; }
-    .ghost-btn { margin-inline-start: 0; }
-  }
-</style>
+<title>富來大郡社區</title>
+<link rel="stylesheet" href="assets/site.css">
 </head>
-<body>
+<body data-page="home">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">富來大郡社區</span>
+      <span class="brand-sub">FU LAI DA JUN</span>
+    </a>
+    <button class="nav-toggle" aria-label="開啟選單" aria-expanded="false">☰</button>
+    <nav class="site-nav" aria-label="主導覽">
+      <a href="index.html" data-page="home">首頁</a>
+      <a href="announcements.html" data-page="announcements">社區公告欄</a>
+      <a href="about.html" data-page="about">關於社區／管委會</a>
+      <a href="rules-fees.html" data-page="rules-fees">規約與費用</a>
+      <a href="facilities.html" data-page="facilities">設施與服務</a>
+      <a href="cleaning.html" data-page="cleaning">清潔排班表</a>
+    </nav>
+  </div>
+</header>
+
 <div class="page">
-  <header class="masthead">
-    <p class="eyebrow">富來大郡社區</p>
-    <h1>清潔人員排班表</h1>
-    <p class="lede">甲、乙兩名清潔人員固定排休：<strong style="color:var(--jia)">甲員</strong>每週三、日，<strong style="color:var(--yi)">乙員</strong>每週二、六。若本週因故對調休假日，可在下方選單調整，系統會即時更新本週的工作表與提醒。</p>
-  </header>
-
-  <div class="toolbar" aria-label="本週休假設定">
-    <div class="control">
-      <label for="jia1"><span class="who jia">甲員</span> 本週休假（任選 2 天）</label>
-      <div class="pair"><select id="jia1"></select><select id="jia2"></select></div>
+  <section class="hero">
+    <p class="eyebrow">歡迎來到</p>
+    <h1>富來大郡社區</h1>
+    <p>一個重視環境維護、住戶安全與社區互動的優質住宅社區。這裡提供社區公告、管委會資訊、規約費用與各項設施服務的最新資訊。</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="announcements.html">查看最新公告</a>
+      <a class="btn btn-ghost" href="about.html">認識管理委員會</a>
     </div>
-    <div class="control">
-      <label for="yi1"><span class="who yi">乙員</span> 本週休假（任選 2 天）</label>
-      <div class="pair"><select id="yi1"></select><select id="yi2"></select></div>
+  </section>
+
+  <section class="card-grid">
+    <a class="card" href="announcements.html">
+      <span class="card-icon">📢</span>
+      <h3>社區公告欄</h3>
+      <p>最新管委會公告、活動通知與停水停電等維修資訊。</p>
+      <span class="card-link">前往公告欄 →</span>
+    </a>
+    <a class="card" href="about.html">
+      <span class="card-icon">🏘️</span>
+      <h3>關於社區／管委會</h3>
+      <p>社區簡介、管理委員會組織與辦公聯絡方式。</p>
+      <span class="card-link">認識社區 →</span>
+    </a>
+    <a class="card" href="rules-fees.html">
+      <span class="card-icon">📋</span>
+      <h3>社區規約與費用</h3>
+      <p>管理費收費標準、繳費方式與社區規約下載。</p>
+      <span class="card-link">查看規約與費用 →</span>
+    </a>
+    <a class="card" href="facilities.html">
+      <span class="card-icon">🏊</span>
+      <h3>設施與服務</h3>
+      <p>中庭花園、停車場、消防設施等公共設施介紹。</p>
+      <span class="card-link">瀏覽設施 →</span>
+    </a>
+  </section>
+
+  <section class="section">
+    <h2>最新公告</h2>
+    <p class="sub placeholder-note">示意內容，正式資料請管委會確認後更新</p>
+    <div class="card-grid">
+      <a class="card" href="announcements.html">
+        <span class="tag-pill notice">公告</span>
+        <h3>2026 年度管理費收繳通知</h3>
+        <p>本年度第三季管理費將於本月底開始收繳，請住戶留意繳費期限。</p>
+      </a>
+      <a class="card" href="announcements.html">
+        <span class="tag-pill maint">停水停電</span>
+        <h3>地下室配電設備歲修停電公告</h3>
+        <p>本週六上午將進行例行配電設備維護，屆時地下室照明將短暫中斷。</p>
+      </a>
+      <a class="card" href="announcements.html">
+        <span class="tag-pill event">活動</span>
+        <h3>社區中庭親子園遊會</h3>
+        <p>管委會將於本月舉辦親子園遊會，歡迎住戶攜家帶眷共襄盛舉。</p>
+      </a>
     </div>
-    <button class="ghost-btn" id="resetBtn" type="button">還原預設休假（三、日／二、六）</button>
-  </div>
+    <a class="btn btn-outline" href="announcements.html" style="align-self:center;">查看全部公告</a>
+  </section>
 
-  <div class="banner-stack" id="bannerStack"></div>
-
-  <div class="overview-wrap">
-    <table class="overview" id="overviewTable"></table>
-  </div>
-
-  <div class="sheet-section">
-    <div class="sheet-title">
-      <h2>本週清潔工作表</h2>
-      <span class="person-pill jia">甲員</span><span class="person-pill yi">乙員</span>
+  <section class="section">
+    <h2>聯絡資訊</h2>
+    <p class="sub placeholder-note">示意內容，正式資料請管委會確認後更新</p>
+    <div class="card-grid">
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:1rem;margin:0 0 .3rem;">辦公時間</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;">週一至週五 08:30–17:30</p>
+      </div>
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:1rem;margin:0 0 .3rem;">管理室電話</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;">03-5590857</p>
+      </div>
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:1rem;margin:0 0 .3rem;">社區地址</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;">新竹縣湖口鄉德和路10巷86號</p>
+      </div>
     </div>
-    <div class="sheet-wrap"><table class="daysheet" id="sheetAll"></table></div>
-  </div>
-
-  <div class="notes">
-    <h2>注意事項</h2>
-    <ul>
-      <li>07:30–08:30、08:30–10:00、10:15–12:00 三個時段為<strong>共同區域維護工作</strong>，由當天上班人員共同執行，不特別區分甲、乙負責項目。</li>
-      <li>13:00–16:30 為<strong>各棟責任分工</strong>：甲員負責 A 棟全樓層及 B 棟 2–7 樓層；乙員負責 C 棟全樓層及 B 棟 7 樓至頂樓；電梯出入口（梯廳）平時各自負責所屬棟別，<strong>當天只有一人上班時，需完成 A、B、C 三棟梯廳清潔</strong>，原本另一員負責的樓層清掃當日暫緩。</li>
-      <li>本頁「本週休假」僅為<strong>暫時性調整</strong>（例如換休、代班），固定排休仍為甲：三、日／乙：二、六，下次開啟頁面會自動還原預設值。</li>
-    </ul>
-  </div>
-
-  <div class="notes" id="julyRestRecord">
-    <h2>7 月排休紀錄（甲、乙員實際休假日，僅供紀錄，不隨上方本週試算調整）</h2>
-    <div class="calendar-wrap">
-      <table class="calendar">
-        <thead>
-          <tr><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th><th>日</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="cal-empty"></td>
-            <td><div class="cal-date">6/30</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">1</div></td>
-            <td><div class="cal-date">2</div></td>
-            <td><div class="cal-date">3</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">4</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">5</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-          </tr>
-          <tr>
-            <td><div class="cal-date">6</div></td>
-            <td><div class="cal-date">7</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">8</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">9</div></td>
-            <td><div class="cal-date">10</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">11</div></td>
-            <td><div class="cal-date">12</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-          </tr>
-          <tr>
-            <td><div class="cal-date">13</div></td>
-            <td><div class="cal-date">14</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">15</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">16</div></td>
-            <td><div class="cal-date">17</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">18</div></td>
-            <td><div class="cal-date">19</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-          </tr>
-          <tr>
-            <td><div class="cal-date">20</div></td>
-            <td><div class="cal-date">21</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">22</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">23</div></td>
-            <td><div class="cal-date">24</div></td>
-            <td><div class="cal-date">25</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">26</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-          </tr>
-          <tr>
-            <td><div class="cal-date">27</div></td>
-            <td><div class="cal-date">28</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">29</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">30</div></td>
-            <td><div class="cal-date">31</div></td>
-            <td class="cal-empty"></td>
-            <td class="cal-empty"></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <details class="source-images">
-    <summary>查看原始紙本工作表（掃描檔）</summary>
-    <div class="imgs">
-      <img src="264002.jpg" alt="A人員（甲員）原始清潔工作表掃描檔">
-      <img src="264003.jpg" alt="B人員（乙員）原始清潔工作表掃描檔">
-    </div>
-  </details>
-
-  <footer class="page-footer">富來大郡社區管理委員會・清潔工作表數位化版本</footer>
+  </section>
 </div>
 
-<script>
-(function () {
-  const ALL_DAYS = ['一','二','三','四','五','六','日'];
-  const DEFAULT_OFF = { 甲: ['三','日'], 乙: ['二','六'] };
-
-  const MORNING_BLOCKS = [
-    {
-      time: '07:30<br>｜<br>08:30',
-      html: '社區內中庭花圃走道清掃、社區外圍騎樓清掃、垃圾回收區整理分類'
-    },
-    {
-      time: '08:30<br>｜<br>10:00',
-      html: '大廳整理清掃拖拭（落地窗玻璃擦拭依乾淨度，一週至少一次）、公廁沖洗拖拭玻璃擦拭'
-    }
-  ];
-  const MID_BLOCK = {
-    time: '10:15<br>｜<br>12:00',
-    html: 'B1～B2 地下室及斜坡車道打掃、蜘蛛網清除、消防器材除塵'
-  };
-  const AFTERNOON = {
-    甲: {
-      lobby: 'A 棟 1F～B2 電梯出入口（梯廳）清掃拖拭、電梯控制面板及玻璃、消防器材擦拭',
-      lobbyNote: '一人上班時，A、B、C 三棟梯廳都要做',
-      floors: [
-        'A 棟各樓層清掃拖拭、消防器材、蜘蛛網清除、電梯控制面板擦拭（安全梯清掃）',
-        'B 棟 2～7 樓層清掃拖拭、消防器材、蜘蛛網清除、電梯控制面板擦拭（安全梯清掃）'
-      ]
-    },
-    乙: {
-      lobby: 'C 棟、B 棟 1F～B2 電梯出入口（梯廳）清掃拖拭、電梯控制面板及玻璃、消防器材擦拭',
-      lobbyNote: '一人上班時，A、B、C 三棟梯廳都要做',
-      floors: [
-        'C 棟各樓層清掃拖拭、消防器材、蜘蛛網清除、電梯控制面板擦拭（安全梯清掃）',
-        'B 棟 7～頂樓清掃拖拭、消防器材、蜘蛛網清除、電梯控制面板擦拭（安全梯清掃）'
-      ]
-    }
-  };
-
-  const sel = {
-    jia1: document.getElementById('jia1'), jia2: document.getElementById('jia2'),
-    yi1: document.getElementById('yi1'), yi2: document.getElementById('yi2')
-  };
-  const bannerStack = document.getElementById('bannerStack');
-  const overviewTable = document.getElementById('overviewTable');
-  const sheetAll = document.getElementById('sheetAll');
-  const resetBtn = document.getElementById('resetBtn');
-
-  Object.values(sel).forEach(s => {
-    ALL_DAYS.forEach(d => {
-      const o = document.createElement('option'); o.value = d; o.textContent = '週' + d;
-      s.appendChild(o);
-    });
-  });
-
-  function applyDefaults() {
-    sel.jia1.value = DEFAULT_OFF.甲[0]; sel.jia2.value = DEFAULT_OFF.甲[1];
-    sel.yi1.value = DEFAULT_OFF.乙[0]; sel.yi2.value = DEFAULT_OFF.乙[1];
-  }
-  applyDefaults();
-
-  function wirePair(s1, s2) {
-    s1.dataset.prev = s1.value; s2.dataset.prev = s2.value;
-    function handle(changed, other) {
-      if (changed.value === other.value) other.value = changed.dataset.prev;
-      s1.dataset.prev = s1.value; s2.dataset.prev = s2.value;
-      render();
-    }
-    s1.addEventListener('change', () => handle(s1, s2));
-    s2.addEventListener('change', () => handle(s2, s1));
-  }
-  wirePair(sel.jia1, sel.jia2);
-  wirePair(sel.yi1, sel.yi2);
-
-  resetBtn.addEventListener('click', () => { applyDefaults(); render(); });
-
-  function offDaysOf(person) {
-    return person === '甲' ? [sel.jia1.value, sel.jia2.value] : [sel.yi1.value, sel.yi2.value];
-  }
-
-  function renderBanner() {
-    bannerStack.innerHTML = '';
-    const offJia = offDaysOf('甲'), offYi = offDaysOf('乙');
-    const overlap = ALL_DAYS.filter(d => offJia.includes(d) && offYi.includes(d));
-    const soloDays = ALL_DAYS.filter(d => (offJia.includes(d)) !== (offYi.includes(d)));
-    const msgs = [];
-
-    if (overlap.length) {
-      msgs.push({ cls: 'warn', html: `<strong>週${overlap.join('、週')}</strong> 甲、乙兩人同時休假，當天社區將無人清潔，請提前安排代班或調整休假日。` });
-    }
-    if (soloDays.length) {
-      const list = soloDays.map(d => {
-        const who = offJia.includes(d) ? '乙' : '甲';
-        return `週${d}（僅${who}員上班）`;
-      }).join('、');
-      msgs.push({ cls: 'ok', html: `本週單人上班日：<strong>${list}</strong>，該日需獨力完成三棟梯廳清潔，原本另一員負責的樓層當日暫緩。` });
-    } else if (!overlap.length) {
-      msgs.push({ cls: 'ok', html: '本週休假日互不重疊，兩人每日皆各自依棟別分工執行下午工作。' });
-    }
-
-    msgs.forEach(m => {
-      const div = document.createElement('div');
-      div.className = 'banner ' + m.cls;
-      div.innerHTML = m.html;
-      bannerStack.appendChild(div);
-    });
-  }
-
-  function renderOverview() {
-    const offJia = offDaysOf('甲'), offYi = offDaysOf('乙');
-    let html = '<thead><tr><th>星期</th>';
-    ALL_DAYS.forEach(d => html += `<th>週${d}</th>`);
-    html += '</tr></thead><tbody>';
-
-    html += '<tr><th>甲員</th>';
-    ALL_DAYS.forEach(d => {
-      html += offJia.includes(d)
-        ? `<td><span class="badge off">休</span></td>`
-        : `<td><span class="badge on jia">上班</span>${offYi.includes(d) ? '<span class="solo-tag">單人上班</span>' : ''}</td>`;
-    });
-    html += '</tr>';
-
-    html += '<tr><th>乙員</th>';
-    ALL_DAYS.forEach(d => {
-      html += offYi.includes(d)
-        ? `<td><span class="badge off">休</span></td>`
-        : `<td><span class="badge on yi">上班</span>${offJia.includes(d) ? '<span class="solo-tag">單人上班</span>' : ''}</td>`;
-    });
-    html += '</tr></tbody>';
-
-    overviewTable.innerHTML = html;
-  }
-
-  function dayPattern(offJia, offYi, d) {
-    const aOff = offJia.includes(d), bOff = offYi.includes(d);
-    if (aOff && bOff) return 'both-off';
-    if (aOff) return 'only-yi';
-    if (bOff) return 'only-jia';
-    return 'both-on';
-  }
-
-  function rowByPattern(timeLabel, patternOf, contentFn) {
-    let row = `<tr><th class="timelabel">${timeLabel}</th>`;
-    let i = 0;
-    while (i < ALL_DAYS.length) {
-      const p = patternOf(ALL_DAYS[i]);
-      let span = 1;
-      while (i + span < ALL_DAYS.length && patternOf(ALL_DAYS[i + span]) === p) span++;
-      if (p === 'both-off') {
-        row += `<td class="offcell" colspan="${span}">雙人休</td>`;
-      } else {
-        row += `<td class="taskcell" colspan="${span}">${contentFn(p)}</td>`;
-      }
-      i += span;
-    }
-    row += '</tr>';
-    return row;
-  }
-
-  function buildSheet() {
-    const offJia = offDaysOf('甲'), offYi = offDaysOf('乙');
-    const patternOf = d => dayPattern(offJia, offYi, d);
-    const simplePatternOf = d => patternOf(d) === 'both-off' ? 'both-off' : 'on';
-
-    let html = '<colgroup><col class="timecol">' + ALL_DAYS.map(() => '<col>').join('') + '</colgroup>';
-    html += '<thead><tr><th class="corner" rowspan="2">時間／星期</th>' + ALL_DAYS.map(d => `<th>週${d}</th>`).join('') + '</tr>';
-    html += '<tr class="status-row">' + ALL_DAYS.map(d => {
-      const jiaTxt = offJia.includes(d) ? '甲休' : '甲上';
-      const yiTxt = offYi.includes(d) ? '乙休' : '乙上';
-      return `<th><span style="color:var(--jia)">${jiaTxt}</span>／<span style="color:var(--yi)">${yiTxt}</span></th>`;
-    }).join('') + '</tr></thead><tbody>';
-
-    MORNING_BLOCKS.forEach(b => {
-      html += rowByPattern(b.time, simplePatternOf, () => b.html);
-    });
-    html += '<tr class="break-row"><td colspan="8">10:00 ～ 10:15　休息時間</td></tr>';
-    html += rowByPattern(MID_BLOCK.time, simplePatternOf, () => MID_BLOCK.html);
-    html += '<tr class="break-row"><td colspan="8">12:00 ～ 13:00　午休時間</td></tr>';
-
-    html += rowByPattern('13:00<br>｜<br>16:30', patternOf, (p) => {
-      if (p === 'both-on') {
-        return `<span class="person-line"><span class="tag jia">甲</span>${AFTERNOON.甲.lobby}</span>`
-          + `<span class="person-line"><span class="tag yi">乙</span>${AFTERNOON.乙.lobby}</span>`
-          + `<span class="note">備註：${AFTERNOON.甲.lobbyNote}</span>`;
-      }
-      const solo = p === 'only-jia' ? '甲' : '乙';
-      return `<span class="tag ${solo === '甲' ? 'jia' : 'yi'}">${solo}</span>A、B、C 三棟 1F～B2 電梯出入口（梯廳）清掃拖拭、電梯控制面板及玻璃、消防器材擦拭`
-        + `<span class="note">備註：今日僅${solo}員上班，需完成三棟梯廳清潔</span>`;
-    });
-    html += '<tr class="break-row"><td colspan="8">15:00 ～ 15:15　休息時間</td></tr>';
-    html += rowByPattern('（續）<br>13:00<br>｜<br>16:30', patternOf, (p) => {
-      if (p === 'both-on') {
-        return `<span class="person-line"><span class="tag jia">甲</span>${AFTERNOON.甲.floors[0]}<br>${AFTERNOON.甲.floors[1]}</span>`
-          + `<span class="person-line"><span class="tag yi">乙</span>${AFTERNOON.乙.floors[0]}<br>${AFTERNOON.乙.floors[1]}</span>`;
-      }
-      const solo = p === 'only-jia' ? '甲' : '乙';
-      const other = solo === '甲' ? '乙' : '甲';
-      const floors = AFTERNOON[solo].floors;
-      return `<span class="tag ${solo === '甲' ? 'jia' : 'yi'}">${solo}</span>${floors[0]}<br>${floors[1]}`
-        + `<span class="gap-note">今日僅${solo}員上班，${other}員負責樓層本日暫緩清潔</span>`;
-    });
-
-    sheetAll.innerHTML = html;
-  }
-
-  function render() {
-    renderBanner();
-    renderOverview();
-    buildSheet();
-  }
-
-  render();
-})();
-</script>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <h4>富來大郡社區管理委員會</h4>
+      <p>新竹縣湖口鄉德和路10巷86號</p>
+    </div>
+    <div>
+      <h4>辦公時間</h4>
+      <p>週一至週五 08:30–17:30</p>
+    </div>
+    <div>
+      <h4>聯絡方式</h4>
+      <ul>
+        <li>電話：03-5590857</li>
+      </ul>
+    </div>
+    <div class="copyright">© 2026 富來大郡社區管理委員會・網站內容部分為示意資料，正式資訊請以管委會公告為準</div>
+  </div>
+</footer>
+<script src="assets/nav.js"></script>
 </body>
 </html>
