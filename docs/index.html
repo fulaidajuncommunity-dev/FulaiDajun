@@ -178,16 +178,16 @@
   <header class="masthead">
     <p class="eyebrow">富來大郡社區</p>
     <h1>清潔人員排班表</h1>
-    <p class="lede">甲、乙兩名清潔人員固定排休：<strong style="color:var(--jia)">甲員</strong>每週三、日，<strong style="color:var(--yi)">乙員</strong>每週二、六。若本週因故對調休假日，可在下方選單調整，系統會即時更新本週的工作表與提醒。</p>
+    <p class="lede">甲、乙兩名清潔人員固定排休：<strong style="color:var(--jia)">A員</strong>每週三、日，<strong style="color:var(--yi)">B員</strong>每週二、六。若本週因故對調休假日，可在下方選單調整，系統會即時更新本週的工作表與提醒。</p>
   </header>
 
   <div class="toolbar" aria-label="本週休假設定">
     <div class="control">
-      <label for="jia1"><span class="who jia">甲員</span> 本週休假（任選 2 天）</label>
+      <label for="jia1"><span class="who jia">A員</span> 本週休假（任選 2 天）</label>
       <div class="pair"><select id="jia1"></select><select id="jia2"></select></div>
     </div>
     <div class="control">
-      <label for="yi1"><span class="who yi">乙員</span> 本週休假（任選 2 天）</label>
+      <label for="yi1"><span class="who yi">B員</span> 本週休假（任選 2 天）</label>
       <div class="pair"><select id="yi1"></select><select id="yi2"></select></div>
     </div>
     <button class="ghost-btn" id="resetBtn" type="button">還原預設休假（三、日／二、六）</button>
@@ -202,7 +202,7 @@
   <div class="sheet-section">
     <div class="sheet-title">
       <h2>本週清潔工作表</h2>
-      <span class="person-pill jia">甲員</span><span class="person-pill yi">乙員</span>
+      <span class="person-pill jia">A員</span><span class="person-pill yi">B員</span>
     </div>
     <div class="sheet-wrap"><table class="daysheet" id="sheetAll"></table></div>
   </div>
@@ -211,13 +211,13 @@
     <h2>注意事項</h2>
     <ul>
       <li>07:30–08:30、08:30–10:00、10:15–12:00 三個時段為<strong>共同區域維護工作</strong>，由當天上班人員共同執行，不特別區分甲、乙負責項目。</li>
-      <li>13:00–16:30 為<strong>各棟責任分工</strong>：甲員負責 A 棟全樓層及 B 棟 2–7 樓層；乙員負責 C 棟全樓層及 B 棟 7 樓至頂樓；電梯出入口（梯廳）平時各自負責所屬棟別，<strong>當天只有一人上班時，需完成 A、B、C 三棟梯廳清潔</strong>，原本另一員負責的樓層清掃當日暫緩。</li>
+      <li>13:00–16:30 為<strong>各棟責任分工</strong>：A員負責 A 棟全樓層及 B 棟 2–7 樓層；B員負責 C 棟全樓層及 B 棟 7 樓至頂樓；電梯出入口（梯廳）平時各自負責所屬棟別，<strong>當天只有一人上班時，需完成 A、B、C 三棟梯廳清潔</strong>，原本另一員負責的樓層清掃當日暫緩。</li>
       <li>本頁「本週休假」僅為<strong>暫時性調整</strong>（例如換休、代班），固定排休仍為甲：三、日／乙：二、六，下次開啟頁面會自動還原預設值。</li>
     </ul>
   </div>
 
   <div class="notes" id="julyRestRecord">
-    <h2>7 月排休紀錄（甲、乙員實際休假日，僅供紀錄，不隨上方本週試算調整）</h2>
+    <h2>7 月排休紀錄（A、B員實際休假日，僅供紀錄，不隨上方本週試算調整）</h2>
     <div class="calendar-wrap">
       <table class="calendar">
         <thead>
@@ -277,8 +277,8 @@
   <details class="source-images">
     <summary>查看原始紙本工作表（掃描檔）</summary>
     <div class="imgs">
-      <img src="264002.jpg" alt="A人員（甲員）原始清潔工作表掃描檔">
-      <img src="264003.jpg" alt="B人員（乙員）原始清潔工作表掃描檔">
+      <img src="264002.jpg" alt="A人員（A員）原始清潔工作表掃描檔">
+      <img src="264003.jpg" alt="B人員（B員）原始清潔工作表掃描檔">
     </div>
   </details>
 
@@ -398,7 +398,7 @@
     ALL_DAYS.forEach(d => html += `<th>週${d}</th>`);
     html += '</tr></thead><tbody>';
 
-    html += '<tr><th>甲員</th>';
+    html += '<tr><th>A員</th>';
     ALL_DAYS.forEach(d => {
       html += offJia.includes(d)
         ? `<td><span class="badge off">休</span></td>`
@@ -406,7 +406,7 @@
     });
     html += '</tr>';
 
-    html += '<tr><th>乙員</th>';
+    html += '<tr><th>B員</th>';
     ALL_DAYS.forEach(d => {
       html += offYi.includes(d)
         ? `<td><span class="badge off">休</span></td>`
