@@ -187,18 +187,49 @@ table.formal .blank-line {
   letter-spacing: .05em;
 }
 
-/* ---------- 回索引 ---------- */
+/* ---------- 頁面工具列（返回連結／列印按鈕） ---------- */
+.toolbar-row {
+  max-width: 210mm;
+  margin: 2rem auto 0;
+  padding: 0 20mm;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
 .back-link {
   display: inline-block;
-  margin: 0 0 1.2rem;
   font-size: .82rem;
   color: var(--accent);
   text-decoration: none;
 }
 .back-link:hover { text-decoration: underline; }
 
+.print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-family: inherit;
+  font-size: .84rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  padding: .55rem 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+.print-btn:hover { filter: brightness(1.08); }
+.print-btn:active { filter: brightness(.95); }
+
+@media (max-width: 640px) {
+  .toolbar-row { padding: 0 5mm; }
+}
+
 @media print {
   body { background: var(--paper); }
   .sheet { margin: 0 auto; box-shadow: none; }
-  .back-link { display: none; }
+  .toolbar-row { display: none; }
 }
