@@ -14,6 +14,48 @@
   .committee-table thead th { background: var(--header-bg); color: var(--header-ink); font-weight: 600; }
   .committee-table tbody td.role { font-weight: 600; color: var(--ink); }
   .committee-table tbody td.name { color: var(--ink-soft); }
+
+  .ask-box {
+    background: var(--accent-soft); border: 1px solid var(--line); border-radius: 16px;
+    padding: 1.1rem 1.3rem; display: flex; flex-direction: column; gap: .7rem;
+  }
+  .ask-box .ask-title { font-family: var(--font-display); font-weight: 700; font-size: .98rem; display: flex; align-items: center; gap: .4rem; }
+  .ask-box .ask-desc { margin: 0; font-size: .82rem; color: var(--ink-soft); line-height: 1.6; }
+  .ask-row { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .ask-row input[type="text"] {
+    flex: 1; min-width: 200px; padding: .65rem .9rem; border-radius: 10px;
+    border: 1px solid var(--line); font-family: inherit; font-size: .92rem;
+    background: var(--surface); color: var(--ink);
+  }
+  .ask-row input[type="text"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ask-btn {
+    font-family: inherit; font-size: .88rem; font-weight: 700; color: #fff;
+    background: var(--accent); border: none; border-radius: 999px; padding: .65rem 1.3rem;
+    cursor: pointer; white-space: nowrap;
+  }
+  .ask-btn:hover { filter: brightness(1.06); }
+  .ask-btn:disabled { opacity: .55; cursor: not-allowed; }
+  .ask-status-row { display: flex; justify-content: space-between; align-items: center; }
+  .ask-loading { display: none; align-items: center; gap: .4rem; font-size: .82rem; color: var(--ink-soft); }
+  .ask-loading.show { display: inline-flex; }
+  .ask-spin {
+    width: .8rem; height: .8rem; border-radius: 50%; border: 2px solid var(--line);
+    border-top-color: var(--accent); animation: ask-spin .7s linear infinite;
+  }
+  @keyframes ask-spin { to { transform: rotate(360deg); } }
+  .ask-counter { font-size: .72rem; color: var(--ink-soft); font-family: var(--font-mono); }
+  .ask-answer {
+    display: none; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: .9rem 1.1rem; font-size: .88rem; line-height: 1.75; color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .ask-answer.show { display: block; }
+  .ask-chip-row { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .ask-chip {
+    font-family: inherit; font-size: .78rem; color: var(--accent); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 999px; padding: .4rem .85rem; cursor: pointer;
+  }
+  .ask-chip:hover { background: var(--accent-soft); }
 </style>
 </head>
 <body data-page="about">
@@ -71,6 +113,26 @@
   <section class="section">
     <h2>社區規約與管理辦法</h2>
     <p class="sub">住戶規約及各項管理辦法全文，開啟後可直接列印或另存為 PDF</p>
+
+    <div class="ask-box">
+      <div class="ask-title">🤖 規約問答小幫手</div>
+      <p class="ask-desc">有規約相關問題嗎？直接輸入問題，AI 會根據下方社區住戶規約與各項管理辦法內容搜尋回答。僅供參考，正式規定請以管委會公告或原始文件為準。</p>
+      <div class="ask-chip-row">
+        <button type="button" class="ask-chip" data-q="管理費遲繳會怎麼樣？">管理費遲繳會怎麼樣？</button>
+        <button type="button" class="ask-chip" data-q="亂丟垃圾會怎麼樣？">亂丟垃圾會怎麼樣？</button>
+        <button type="button" class="ask-chip" data-q="裝修保證金要繳多少？">裝修保證金要繳多少？</button>
+      </div>
+      <form id="askForm" class="ask-row">
+        <input type="text" id="askInput" maxlength="200" placeholder="例如：管理費遲繳會怎麼樣？" autocomplete="off">
+        <button type="submit" id="askBtn" class="ask-btn">送出提問</button>
+      </form>
+      <div class="ask-status-row">
+        <span class="ask-loading" id="askLoading"><span class="ask-spin"></span>思考中…</span>
+        <span class="ask-counter" id="askCounter">0 / 200</span>
+      </div>
+      <div class="ask-answer" id="askAnswer"></div>
+    </div>
+
     <div class="card-grid">
       <a class="card" href="regulations/06-社區住戶規約.html" target="_blank" rel="noopener">
         <span class="card-icon">📜</span>
@@ -146,5 +208,74 @@
   </div>
 </footer>
 <script src="assets/nav.js"></script>
+<script>
+(function () {
+  var ENDPOINT = 'https://fulaidajun-ai.fulaidajuncommunity.workers.dev/';
+  var form = document.getElementById('askForm');
+  var input = document.getElementById('askInput');
+  var btn = document.getElementById('askBtn');
+  var answerBox = document.getElementById('askAnswer');
+  var loading = document.getElementById('askLoading');
+  var counter = document.getElementById('askCounter');
+  if (!form) return;
+
+  function setLoading(isLoading) {
+    btn.disabled = isLoading;
+    input.disabled = isLoading;
+    loading.classList.toggle('show', isLoading);
+  }
+
+  function updateCounter() {
+    counter.textContent = input.value.length + ' / 200';
+  }
+  input.addEventListener('input', updateCounter);
+
+  function showAnswer(text) {
+    answerBox.textContent = text;
+    answerBox.classList.add('show');
+  }
+
+  function ask(promptText) {
+    var prompt = (promptText != null ? promptText : input.value).trim();
+    if (!prompt) return;
+    if (prompt.length > 200) {
+      showAnswer('提問字數請在 200 字以內，麻煩精簡一下問題內容。');
+      return;
+    }
+    input.value = prompt;
+    updateCounter();
+    setLoading(true);
+    answerBox.classList.remove('show');
+
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt })
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('network');
+        return res.json();
+      })
+      .then(function (data) {
+        showAnswer(data.answer || '暫時無法回答，請稍後再試。');
+      })
+      .catch(function () {
+        showAnswer('連線失敗，請稍後再試，或直接洽詢管理中心 03-5990857。');
+      })
+      .finally(function () {
+        setLoading(false);
+      });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    ask();
+  });
+
+  document.querySelectorAll('.ask-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () { ask(chip.dataset.q); });
+  });
+})();
+</script>
 </body>
 </html>
