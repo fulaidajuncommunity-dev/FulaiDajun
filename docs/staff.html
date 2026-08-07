@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>社區服務人員・富來大郡社區</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .role-section { display: flex; flex-direction: column; gap: .8rem; }
+  .role-head { display: flex; align-items: center; gap: .7rem; }
+  .role-head .role-icon {
+    font-size: 1.6rem; flex-shrink: 0; width: 2.6rem; height: 2.6rem;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-soft); border-radius: 14px;
+  }
+  .role-head h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; margin: 0; }
+  .role-head .role-en {
+    font-family: var(--font-mono); font-size: .7rem; color: var(--ink-soft); letter-spacing: .04em;
+  }
+  .role-summary { margin: 0; font-size: .85rem; color: var(--ink-soft); line-height: 1.6; }
+  .duty-list { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: .5rem; }
+  .duty-list li { font-size: .87rem; color: var(--ink-soft); line-height: 1.65; }
+  .duty-list li strong { color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body data-page="staff">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">富來大郡社區</span>
+      <span class="brand-sub">FU LAI DA JUN</span>
+    </a>
+    <button class="nav-toggle" aria-label="開啟選單" aria-expanded="false">☰</button>
+    <nav class="site-nav" aria-label="主導覽">
+      <a href="index.html" data-page="home">首頁</a>
+      <a href="announcements.html" data-page="announcements">社區公告欄</a>
+      <a href="about.html" data-page="about">關於社區／管委會</a>
+      <a href="rules-fees.html" data-page="rules-fees">管理費用</a>
+      <a href="facilities.html" data-page="facilities">設施與服務</a>
+      <a href="staff.html" data-page="staff">社區服務人員</a>
+      <a href="cleaning.html" data-page="cleaning">清潔排班表</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">服務團隊</p>
+    <h1>社區服務人員</h1>
+    <p class="lede">物業管理公司、社區經理、保全與清潔人員各司其職，共同維護社區的安全、整潔與日常運作，以下說明各職位的核心職掌分工。</p>
+  </header>
+
+  <section class="section role-section">
+    <div class="role-head">
+      <span class="role-icon">🏢</span>
+      <div>
+        <h2>物業管理公司</h2>
+        <p class="role-en">Property Management Company</p>
+      </div>
+    </div>
+    <p class="role-summary">角色：社區服務的履約主體與支援後盾。</p>
+    <ul class="duty-list">
+      <li><strong>人員調派與人力支援：</strong>提供合格的社區經理、保全與清潔人力，若現場有人員請假或離職，需負責派員代班或補足人力。</li>
+      <li><strong>行政與法規支援：</strong>協助社區辦理區權人會議、法令諮詢（如《公寓大廈管理條例》）、廠商招標督導等。</li>
+      <li><strong>考核與督導：</strong>定期派區幹部（如督導或主管）巡視社區，考核現場人員表現。</li>
+      <li><strong>財務與系統支援：</strong>提供財務報表軟體、公務管理系統等後台工具。</li>
+    </ul>
+  </section>
+
+  <section class="section role-section">
+    <div class="role-head">
+      <span class="role-icon">🧑‍💼</span>
+      <div>
+        <h2>社區經理／總幹事</h2>
+        <p class="role-en">Community Manager</p>
+      </div>
+    </div>
+    <p class="role-summary">角色：現場營運指揮官，也是管委會與物業公司、住戶之間的溝通橋樑。</p>
+    <ul class="duty-list">
+      <li><strong>現場人員管理：</strong>直接管理並督導保全與清潔人員的工作進度、出勤狀況及服務態度。</li>
+      <li><strong>管委會交辦事項執行：</strong>執行管委會決議（如公共設施修繕、例行維護、活動辦理）。</li>
+      <li><strong>財務與行政管理：</strong>管理費收繳、公共基金帳目製作、各項請款流程與廠商聯繫。</li>
+      <li><strong>住戶服務與客訴處理：</strong>處理住戶反映事項、違規勸導（如亂停汽機車、噪音等）。</li>
+    </ul>
+  </section>
+
+  <section class="section role-section">
+    <div class="role-head">
+      <span class="role-icon">🛡️</span>
+      <div>
+        <h2>保全人員／安衛人員</h2>
+        <p class="role-en">Security Guard</p>
+      </div>
+    </div>
+    <p class="role-summary">角色：社區門禁安全、公共區域巡視與即時住戶服務第一線。</p>
+    <ul class="duty-list">
+      <li><strong>門禁與訪客管理：</strong>控制車道與大廳人員進出、訪客登記、廠商施工登記。</li>
+      <li><strong>包裹與郵件代收：</strong>包裹與郵件收發、住戶通知與領取登記。</li>
+      <li><strong>安全巡邏與應變：</strong>定期巡視公共區域與地下室、公設機房狀況，遇突發狀況（如火警、電梯受困）第一時間通報與初處。</li>
+    </ul>
+  </section>
+
+  <section class="section role-section">
+    <div class="role-head">
+      <span class="role-icon">🧹</span>
+      <div>
+        <h2>清潔人員／環保人員</h2>
+        <p class="role-en">Cleaning Staff</p>
+      </div>
+    </div>
+    <p class="role-summary">角色：維護社區環境衛生與整體品質。</p>
+    <ul class="duty-list">
+      <li><strong>公共區域清潔：</strong>大廳、梯廳、公設、中庭及地下室的日常掃拖與維護。</li>
+      <li><strong>垃圾與資收處理：</strong>垃圾房／環保室的整理、分類、定期打包與配合環保局／清除業者清運。</li>
+      <li><strong>定期大清潔：</strong>搭配季節或特定時間進行高處除塵、地板打蠟或公共區域沖洗。</li>
+    </ul>
+    <p class="role-summary">詳細每日排班與工作分配，請見「<a href="cleaning.html">清潔排班表</a>」頁面。</p>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <h4>富來大郡社區管理委員會</h4>
+      <p>新竹縣湖口鄉德和路10巷86號</p>
+    </div>
+    <div>
+      <h4>辦公時間</h4>
+      <p>週一至週五 08:30–17:30</p>
+    </div>
+    <div>
+      <h4>聯絡方式</h4>
+      <ul>
+        <li>電話：03-5990857</li>
+      </ul>
+    </div>
+    <div class="copyright">© 2026 富來大郡社區管理委員會</div>
+  </div>
+</footer>
+<script src="assets/nav.js"></script>
+</body>
+</html>
