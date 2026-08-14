@@ -274,10 +274,12 @@
       return;
     }
 
+    // 同下面 submitEl 送出邏輯的說明：cmdPrefix 尾端可能殘留 LIFF liff.state 編碼造成的
+    // 「+」字元，這裡雖然通常是不帶參數的 bare 指令（例如 !幫助），還是順手清掉尾端保險
     fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: idToken, text: cmdPrefix, groupId: groupId || undefined }),
+      body: JSON.stringify({ idToken: idToken, text: cmdPrefix.replace(/[+\s]+$/, ''), groupId: groupId || undefined }),
     })
       .then(function (resp) { return resp.json().then(function (body) { return { ok: resp.ok, body: body }; }); })
       .then(function (result) {
@@ -328,10 +330,19 @@
         setBusy(false);
         return;
       }
+      // cmdPrefix 原本帶著一個尾端空白（例如 "!查財報 "），但 LIFF 從帶 query string 的網址
+      // 開啟時，會把整包參數包進 liff.state 再多包一層 URL encode（見 resolveQueryParams 的
+      // 說明），這個尾端空白實測會變成一個殘留的字面「+」字元、不會還原成空白（LINE 這段
+      // 行為沒有正式文件，只能實測歸納），組出來的指令會變成「!查財報+6月」這種夾雜「+」的
+      // 字串。大部分走 AI 分類的指令（!產公告／!規約）不受影響，但走死板 regex 比對的指令
+      // （!查財報／!產財報）「+」不算合法空白，直接比對失敗，表單送出後完全沒有任何反應，
+      // 2026-08-15 真的發生過（查財報(表) 輸入月份送出後沒反應）。改成送出時自己組一個乾淨的
+      // 空白，不管 cmdPrefix 尾端殘留的是空白還是「+」都先清掉
+      var cmdText = cmdPrefix.replace(/[+\s]+$/, '') + ' ' + content;
       fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken: idToken, text: cmdPrefix + content, content: content, groupId: groupId || undefined }),
+        body: JSON.stringify({ idToken: idToken, text: cmdText, content: content, groupId: groupId || undefined }),
       })
         .then(function (resp) { return resp.json().then(function (body) { return { ok: resp.ok, body: body }; }); })
         .then(function (result) {
