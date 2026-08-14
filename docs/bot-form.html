@@ -272,10 +272,23 @@
           }
           showStatus('已送出，處理結果會顯示在 LINE 對話裡，這個視窗可以關閉了。', 'ok');
           inputEl.value = '';
-          // 開在 LINE App 內建瀏覽器才有 closeWindow 可以用（liff.isInClient()），桌機瀏覽器
-          // 測試時沒有這個功能，留給使用者自己看訊息、手動關閉即可
           if (liff.isInClient && liff.isInClient()) {
+            // 手機走 LINE 內建的 LIFF 瀏覽器，liff.closeWindow() 是官方提供、保證能關閉的方式
             setTimeout(function () { liff.closeWindow(); }, 1500);
+          } else {
+            // 桌機版 LINE App 沒有內建 LIFF 瀏覽器，這個分頁是「LINE 用系統層級開啟外部
+            // 瀏覽器」開出來的，不是這支 script 自己用 window.open() 開的——瀏覽器基於
+            // 安全限制，只允許分頁是「被 script 開啟」時才能用 window.close() 關掉，
+            // 這種情況呼叫大多會被瀏覽器直接忽略、不會報錯也不會關閉。這裡還是嘗試呼叫
+            // （不同瀏覽器/版本的限制寬鬆程度不一樣，呼叫了才知道），失敗的話上面那句
+            // 「這個視窗可以關閉了」的提示文字就是使用者唯一能依賴的線索，請手動關閉
+            setTimeout(function () {
+              try {
+                window.close();
+              } catch (e) {
+                // 被瀏覽器擋下來的話會丟例外，不影響其他流程，忽略即可
+              }
+            }, 1500);
           }
         })
         .catch(function (err) {
