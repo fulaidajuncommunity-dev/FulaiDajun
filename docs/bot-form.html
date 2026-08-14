@@ -165,10 +165,16 @@
   var title = params.get('title') || '';
   var placeholder = params.get('placeholder') || '';
   var hint = params.get('hint') || '';
+  // !產公告這種需要知道「發到哪個群組」的指令才會帶這個，沒有的話就是私訊身份執行，
+  // 見 community-line-bot 那邊 dashboardFormButton／handleLiffCommand 的說明
+  var groupId = params.get('groupId') || '';
 
   if (cmdPrefix) {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ cmdPrefix: cmdPrefix, title: title, placeholder: placeholder, hint: hint }));
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ cmdPrefix: cmdPrefix, title: title, placeholder: placeholder, hint: hint, groupId: groupId })
+      );
     } catch (e) {
       // sessionStorage 存取失敗（例如瀏覽器擋第三方儲存）不影響這次的正常流程，忽略即可
     }
@@ -180,6 +186,7 @@
         title = saved.title;
         placeholder = saved.placeholder;
         hint = saved.hint || '';
+        groupId = saved.groupId || '';
       }
     } catch (e) {
       // 存起來的資料壞掉或讀不到，就照舊走下面「缺少參數」那個分支，不用特別處理
@@ -261,7 +268,7 @@
       fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken: idToken, text: cmdPrefix + content }),
+        body: JSON.stringify({ idToken: idToken, text: cmdPrefix + content, groupId: groupId || undefined }),
       })
         .then(function (resp) { return resp.json().then(function (body) { return { ok: resp.ok, body: body }; }); })
         .then(function (result) {
