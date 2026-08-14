@@ -268,7 +268,7 @@
       fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken: idToken, text: cmdPrefix + content, groupId: groupId || undefined }),
+        body: JSON.stringify({ idToken: idToken, text: cmdPrefix + content, content: content, groupId: groupId || undefined }),
       })
         .then(function (resp) { return resp.json().then(function (body) { return { ok: resp.ok, body: body }; }); })
         .then(function (result) {
