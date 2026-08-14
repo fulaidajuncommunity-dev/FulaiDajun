@@ -149,10 +149,40 @@
     return new URLSearchParams(state);
   }
 
+  // 桌面版 LINE App 沒有內建 LIFF 瀏覽器，點連結會另開外部瀏覽器；如果那個瀏覽器還沒有
+  // LINE 登入 session，liff.login() 會整頁導去 LINE 的登入頁，登入完成後再導回這個頁面。
+  // 2026-08-14 實測發現：這個「真的登入導轉」跑一輪之後，LINE 導回來的網址會把我們自己
+  // 加的 cmd/title/placeholder（不管是直接帶的還是包在 liff.state 裡）弄丟，只留它自己
+  // 內部登入流程用的參數，表單就會誤判成「網址缺少必要參數」。手機版走原生 LIFF 瀏覽器、
+  // 已經是登入狀態就不會發生。解法：拿到參數的當下先存進 sessionStorage，網址上真的讀不到
+  // 的話就退回去讀存起來的這份，撐過中間那次登入導轉
+  var STORAGE_KEY = 'bot-form-params';
+
   var params = resolveQueryParams();
   var cmdPrefix = params.get('cmd') || '';
-  var title = params.get('title') || '富來大郡社區機器人';
+  var title = params.get('title') || '';
   var placeholder = params.get('placeholder') || '';
+
+  if (cmdPrefix) {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ cmdPrefix: cmdPrefix, title: title, placeholder: placeholder }));
+    } catch (e) {
+      // sessionStorage 存取失敗（例如瀏覽器擋第三方儲存）不影響這次的正常流程，忽略即可
+    }
+  } else {
+    try {
+      var saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
+      if (saved && saved.cmdPrefix) {
+        cmdPrefix = saved.cmdPrefix;
+        title = saved.title;
+        placeholder = saved.placeholder;
+      }
+    } catch (e) {
+      // 存起來的資料壞掉或讀不到，就照舊走下面「缺少參數」那個分支，不用特別處理
+    }
+  }
+
+  title = title || '富來大郡社區機器人';
 
   var titleEl = document.getElementById('form-title');
   var hintEl = document.getElementById('form-hint');
