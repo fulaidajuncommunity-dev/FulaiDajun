@@ -133,7 +133,23 @@
   var LIFF_ID = '2011103776-8KD6wVsP';
   var API_URL = 'https://community-line-bot.fulaidajuncommunity.workers.dev/api/liff-command';
 
-  var params = new URLSearchParams(location.search);
+  // LIFF 的已知行為：從 https://liff.line.me/{liffId}?cmd=...&title=... 這種帶了 query
+  // string 的網址開啟時，LINE 不會把 cmd/title/placeholder 直接放在真正載入的這個頁面的
+  // location.search 上，而是整包塞進一個 liff.state 參數裡（值是原始 query string 再包一層
+  // URL encode，例如 ?liff.state=%3Fcmd%3D...%26title%3D...）。一開始沒注意到這個，
+  // 直接讀 location.search 永遠讀不到 cmd，表單看起來像「網址缺參數」，其實是網址沒解對。
+  // 這裡先看有沒有 liff.state，有的話拆開來當真正的參數來源
+  function resolveQueryParams() {
+    var direct = new URLSearchParams(location.search);
+    var state = direct.get('liff.state');
+    if (!state) return direct;
+    // state 可能長 "?cmd=...&title=..." 或 "cmd=...&title=..."，開頭的 "?" 要先去掉
+    // 才能餵給 URLSearchParams
+    if (state.charAt(0) === '?') state = state.slice(1);
+    return new URLSearchParams(state);
+  }
+
+  var params = resolveQueryParams();
   var cmdPrefix = params.get('cmd') || '';
   var title = params.get('title') || '富來大郡社區機器人';
   var placeholder = params.get('placeholder') || '';
