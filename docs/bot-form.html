@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>富來大郡社區機器人表單</title>
+<title>富來大郡AI表單</title>
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <!--
   這是社區 LINE 機器人（community-line-bot）「!幫助」儀表板裡，需要打自由文字才能用的
@@ -122,7 +122,10 @@
 </head>
 <body>
 <div class="wrap">
-  <h1 id="form-title">富來大郡社區機器人</h1>
+  <div style="display:flex; justify-content:space-between; align-items:baseline; gap:.75rem;">
+    <h1 id="form-title" style="margin:0;">富來大郡AI</h1>
+    <a href="#" id="logout-link" title="登出" aria-label="登出" style="font-size:1.1rem; text-decoration:none; display:none;">🚪</a>
+  </div>
   <p class="hint" id="form-hint"></p>
   <div id="status" class="status"></div>
   <textarea id="input" placeholder="請稍候，載入中…" disabled></textarea>
@@ -193,17 +196,18 @@
     }
   }
 
-  title = title || '富來大郡社區機器人';
+  title = title || '富來大郡AI';
 
   var titleEl = document.getElementById('form-title');
   var hintEl = document.getElementById('form-hint');
   var statusEl = document.getElementById('status');
   var inputEl = document.getElementById('input');
   var submitEl = document.getElementById('submit');
+  var logoutLinkEl = document.getElementById('logout-link');
 
   titleEl.textContent = title;
   inputEl.placeholder = placeholder;
-  document.title = title + ' - 富來大郡社區機器人表單';
+  document.title = title + ' - 富來大郡AI表單';
   // 2026-08-14 使用者要求把 LINE 儀表板 Flex 卡片上的按鈕用法說明搬到這裡（各自的表單頁），
   // 讓 Flex 卡片保持精簡。hint 沒帶的話（cmd 也沒帶那個「缺少參數」分支之後會覆蓋這個
   // element，見下面）就不顯示這一行
@@ -240,9 +244,21 @@
     inputEl.disabled = false;
     submitEl.disabled = false;
     inputEl.focus();
+    // 登入成功才顯示登出按鈕——如果不小心登入到錯的 LINE 帳號（例如誤用個人帳號而不是
+    // 社區帳號），可以按這裡清掉登入狀態重新選帳號，不用整個關掉再重開
+    logoutLinkEl.style.display = '';
   }).catch(function (err) {
     console.error('liff.init failed', err);
     showStatus('無法連上 LINE 驗證身份，請確認是從 LINE App 裡開啟這個表單。', 'warn');
+  });
+
+  logoutLinkEl.addEventListener('click', function (e) {
+    e.preventDefault();
+    liff.logout();
+    inputEl.disabled = true;
+    submitEl.disabled = true;
+    logoutLinkEl.style.display = 'none';
+    showStatus('已登出，請關閉這個分頁，從「!幫助」重新點一次按鈕進來即可用其他帳號登入。', 'ok');
   });
 
   submitEl.addEventListener('click', function () {
