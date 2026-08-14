@@ -171,6 +171,11 @@
   // !產公告這種需要知道「發到哪個群組」的指令才會帶這個，沒有的話就是私訊身份執行，
   // 見 community-line-bot 那邊 dashboardFormButton／handleLiffCommand 的說明
   var groupId = params.get('groupId') || '';
+  // 2026-08-14 圖文選單新增：LINE 官方後台的「連結」動作只能開網址，沒有「送文字但不顯示在
+  // 對話框」這種選項，改用這頁本來就有的 LIFF 驗證機制來達成——帶 auto=1 進來的話，這頁
+  // 不顯示表單，登入成功後直接把 cmd（例如 !幫助）當完整指令送出、推播結果，然後自動關閉
+  // 視窗，對話框全程不會出現任何文字
+  var autoMode = params.get('auto') === '1';
 
   if (cmdPrefix) {
     try {
@@ -241,6 +246,10 @@
       liff.login();
       return;
     }
+    if (autoMode) {
+      runAutoMode();
+      return;
+    }
     inputEl.disabled = false;
     submitEl.disabled = false;
     inputEl.focus();
@@ -251,6 +260,44 @@
     console.error('liff.init failed', err);
     showStatus('無法連上 LINE 驗證身份，請確認是從 LINE App 裡開啟這個表單。', 'warn');
   });
+
+  // auto=1（圖文選單用）：不需要使用者輸入任何東西，拿到身份就直接送出 cmd 本身、
+  // 推播完就關閉視窗
+  function runAutoMode() {
+    inputEl.style.display = 'none';
+    submitEl.style.display = 'none';
+    showStatus('開啟中…', 'ok');
+
+    var idToken = liff.getIDToken && liff.getIDToken();
+    if (!idToken) {
+      showStatus('無法取得身份驗證資訊，請重新從圖文選單點一次。', 'warn');
+      return;
+    }
+
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: idToken, text: cmdPrefix, groupId: groupId || undefined }),
+    })
+      .then(function (resp) { return resp.json().then(function (body) { return { ok: resp.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || !result.body || !result.body.ok) {
+          showStatus((result.body && result.body.error) || '開啟失敗，請稍後再試一次。', 'warn');
+          return;
+        }
+        if (liff.isInClient && liff.isInClient()) {
+          liff.closeWindow();
+        } else {
+          try { window.close(); } catch (e) {
+            // 被瀏覽器擋下來的話會丟例外，忽略即可，使用者手動關閉分頁就好
+          }
+        }
+      })
+      .catch(function (err) {
+        console.error('auto submit failed', err);
+        showStatus('網路連線失敗，請確認網路後再試一次。', 'warn');
+      });
+  }
 
   logoutLinkEl.addEventListener('click', function (e) {
     e.preventDefault();
