@@ -57,6 +57,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-width: 0; /* flex column 預設 min-width:auto 會讓長文字撐開版面，這裡強制允許縮小換行 */
     max-width: 560px;
     margin: 0 auto;
     width: 100%;
@@ -72,6 +73,7 @@
     font-size: .85rem;
     line-height: 1.5;
     margin: 0;
+    overflow-wrap: break-word;
   }
   textarea {
     flex: 1;
@@ -162,10 +164,11 @@
   var cmdPrefix = params.get('cmd') || '';
   var title = params.get('title') || '';
   var placeholder = params.get('placeholder') || '';
+  var hint = params.get('hint') || '';
 
   if (cmdPrefix) {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ cmdPrefix: cmdPrefix, title: title, placeholder: placeholder }));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ cmdPrefix: cmdPrefix, title: title, placeholder: placeholder, hint: hint }));
     } catch (e) {
       // sessionStorage 存取失敗（例如瀏覽器擋第三方儲存）不影響這次的正常流程，忽略即可
     }
@@ -176,6 +179,7 @@
         cmdPrefix = saved.cmdPrefix;
         title = saved.title;
         placeholder = saved.placeholder;
+        hint = saved.hint || '';
       }
     } catch (e) {
       // 存起來的資料壞掉或讀不到，就照舊走下面「缺少參數」那個分支，不用特別處理
@@ -193,6 +197,10 @@
   titleEl.textContent = title;
   inputEl.placeholder = placeholder;
   document.title = title + ' - 富來大郡社區機器人表單';
+  // 2026-08-14 使用者要求把 LINE 儀表板 Flex 卡片上的按鈕用法說明搬到這裡（各自的表單頁），
+  // 讓 Flex 卡片保持精簡。hint 沒帶的話（cmd 也沒帶那個「缺少參數」分支之後會覆蓋這個
+  // element，見下面）就不顯示這一行
+  if (hint) hintEl.textContent = hint;
 
   function showStatus(text, kind) {
     statusEl.textContent = text;
