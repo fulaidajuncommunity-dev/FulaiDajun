@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>富來大郡社區機器人表單</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<!--
+  這是社區 LINE 機器人（community-line-bot）「!幫助」儀表板裡，需要打自由文字才能用的
+  指令共用的表單頁。跟網站其他頁面不一樣的地方：
+  - 這頁是給 LIFF（LINE Front-end Framework）用的，只會在 LINE App 內建瀏覽器裡開啟，
+    不是給人從網站導覽點進來的一般頁面，所以刻意不套用 site.css 的 header/nav，維持獨立、
+    極簡、手機直式全螢幕的表單樣式
+  - 同一頁被所有指令共用，靠網址列的 query string 決定要顯示什麼、送出時要組成哪個指令：
+      ?cmd=!卡片%20&title=卡片操作&placeholder=例如：地下室B2漏水已經修好了
+    cmd 是送出時要接在使用者輸入前面的完整指令前綴（含空格），title/placeholder 決定畫面
+    上顯示的文字。之後如果要新增其他指令的表單，不用再開新頁面，在 !幫助 儀表板那邊組一個
+    新的按鈕網址就好（見 community-line-bot/src/index.js 的 dashboardFormButton）
+  - 送出後打的是 community-line-bot 這個 Worker 新開的 /api/liff-command，用
+    liff.getIDToken() 拿到的 ID Token 證明「這是誰」，Worker 那邊會拿去跟 LINE 官方的
+    verify 端點驗證，不是隨便什麼人開這個網址都能打指令進去
+-->
+<style>
+  :root {
+    --paper: #faf3e9;
+    --surface: #fffdf8;
+    --ink: #4a3726;
+    --ink-soft: #92795f;
+    --line: #ecddc4;
+    --accent: #e8794f;
+    --accent-ink: #ffffff;
+    --warn-bg: #fdecda;
+    --warn-ink: #ad5b1c;
+    --ok-bg: #eaf6ec;
+    --ok-ink: #2f6b3e;
+    --font-body: -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #211a13; --surface: #2b2119; --ink: #f3e7d8; --ink-soft: #cbb59c;
+      --line: #40311f; --accent: #f0925f; --accent-ink: #211a13;
+      --warn-bg: #3a2c18; --warn-ink: #f0a560; --ok-bg: #223223; --ok-ink: #8fd6a0;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+    gap: 1rem;
+  }
+  h1 {
+    font-size: 1.15rem;
+    margin: 0;
+  }
+  .hint {
+    color: var(--ink-soft);
+    font-size: .85rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+  textarea {
+    flex: 1;
+    min-height: 40vh;
+    width: 100%;
+    resize: vertical;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: .9rem;
+    font-size: 1rem;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  button {
+    appearance: none;
+    border: none;
+    border-radius: 12px;
+    padding: .95rem;
+    font-size: 1rem;
+    font-weight: 700;
+    background: var(--accent);
+    color: var(--accent-ink);
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: .55;
+    cursor: default;
+  }
+  .status {
+    border-radius: 10px;
+    padding: .75rem .9rem;
+    font-size: .9rem;
+    line-height: 1.5;
+    display: none;
+  }
+  .status.show { display: block; }
+  .status.warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .status.ok { background: var(--ok-bg); color: var(--ok-ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="form-title">富來大郡社區機器人</h1>
+  <p class="hint" id="form-hint"></p>
+  <div id="status" class="status"></div>
+  <textarea id="input" placeholder="請稍候，載入中…" disabled></textarea>
+  <button id="submit" type="button" disabled>送出</button>
+</div>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+(function () {
+  var LIFF_ID = '2011103776-8KD6wVsP';
+  var API_URL = 'https://community-line-bot.fulaidajuncommunity.workers.dev/api/liff-command';
+
+  var params = new URLSearchParams(location.search);
+  var cmdPrefix = params.get('cmd') || '';
+  var title = params.get('title') || '富來大郡社區機器人';
+  var placeholder = params.get('placeholder') || '';
+
+  var titleEl = document.getElementById('form-title');
+  var hintEl = document.getElementById('form-hint');
+  var statusEl = document.getElementById('status');
+  var inputEl = document.getElementById('input');
+  var submitEl = document.getElementById('submit');
+
+  titleEl.textContent = title;
+  inputEl.placeholder = placeholder;
+  document.title = title + ' - 富來大郡社區機器人表單';
+
+  function showStatus(text, kind) {
+    statusEl.textContent = text;
+    statusEl.className = 'status show' + (kind ? ' ' + kind : '');
+  }
+
+  function setBusy(busy) {
+    inputEl.disabled = busy;
+    submitEl.disabled = busy;
+    submitEl.textContent = busy ? '送出中…' : '送出';
+  }
+
+  // cmd 沒帶（網址組錯、或直接手動開這頁沒帶參數）就不知道要組哪個指令，直接擋下來，
+  // 不要讓使用者打完字才發現送不出去
+  if (!cmdPrefix) {
+    hintEl.textContent = '這個表單網址缺少必要參數，麻煩從「!幫助」儀表板重新點一次按鈕進來。';
+    return;
+  }
+
+  if (!window.liff) {
+    showStatus('LIFF SDK 載入失敗，請確認網路連線後重新整理。', 'warn');
+    return;
+  }
+
+  liff.init({ liffId: LIFF_ID }).then(function () {
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+    inputEl.disabled = false;
+    submitEl.disabled = false;
+    inputEl.focus();
+  }).catch(function (err) {
+    console.error('liff.init failed', err);
+    showStatus('無法連上 LINE 驗證身份，請確認是從 LINE App 裡開啟這個表單。', 'warn');
+  });
+
+  submitEl.addEventListener('click', function () {
+    var content = inputEl.value.trim();
+    if (!content) {
+      showStatus('請先輸入內容再送出。', 'warn');
+      return;
+    }
+
+    setBusy(true);
+    statusEl.className = 'status';
+
+    liff.getIDToken
+      ? sendCommand(liff.getIDToken())
+      : (function () { showStatus('無法取得身份驗證資訊，請重新從 LINE 開啟這個表單。', 'warn'); setBusy(false); })();
+
+    function sendCommand(idToken) {
+      if (!idToken) {
+        showStatus('無法取得身份驗證資訊，請重新從 LINE 開啟這個表單。', 'warn');
+        setBusy(false);
+        return;
+      }
+      fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: idToken, text: cmdPrefix + content }),
+      })
+        .then(function (resp) { return resp.json().then(function (body) { return { ok: resp.ok, body: body }; }); })
+        .then(function (result) {
+          setBusy(false);
+          if (!result.ok || !result.body || !result.body.ok) {
+            showStatus((result.body && result.body.error) || '送出失敗，請稍後再試一次。', 'warn');
+            return;
+          }
+          showStatus('已送出，處理結果會顯示在 LINE 對話裡，這個視窗可以關閉了。', 'ok');
+          inputEl.value = '';
+          // 開在 LINE App 內建瀏覽器才有 closeWindow 可以用（liff.isInClient()），桌機瀏覽器
+          // 測試時沒有這個功能，留給使用者自己看訊息、手動關閉即可
+          if (liff.isInClient && liff.isInClient()) {
+            setTimeout(function () { liff.closeWindow(); }, 1500);
+          }
+        })
+        .catch(function (err) {
+          console.error('submit failed', err);
+          setBusy(false);
+          showStatus('網路連線失敗，請確認網路後再試一次。', 'warn');
+        });
+    }
+  });
+})();
+</script>
+</body>
+</html>
