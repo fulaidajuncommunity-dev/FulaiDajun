@@ -6,7 +6,7 @@
 <title>富來大郡AI表單</title>
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <!--
-  這是社區 LINE 機器人（community-line-bot）「!幫助」儀表板裡，需要打自由文字才能用的
+  這是社區 LINE 機器人（community-line-bot）「!選單」儀表板裡，需要打自由文字才能用的
   指令共用的表單頁。跟網站其他頁面不一樣的地方：
   - 這頁是給 LIFF（LINE Front-end Framework）用的，只會在 LINE App 內建瀏覽器裡開啟，
     不是給人從網站導覽點進來的一般頁面，所以刻意不套用 site.css 的 header/nav，維持獨立、
@@ -14,12 +14,12 @@
   - 同一頁被所有指令共用，靠網址列的 query string 決定要顯示什麼、送出時要組成哪個指令：
       ?cmd=!卡片%20&title=卡片操作&placeholder=例如：地下室B2漏水已經修好了
     cmd 是送出時要接在使用者輸入前面的完整指令前綴（含空格），title/placeholder 決定畫面
-    上顯示的文字。之後如果要新增其他指令的表單，不用再開新頁面，在 !幫助 儀表板那邊組一個
+    上顯示的文字。之後如果要新增其他指令的表單，不用再開新頁面，在 !選單 儀表板那邊組一個
     新的按鈕網址就好（見 community-line-bot/src/index.js 的 dashboardFormButton）
   - 送出後打的是 community-line-bot 這個 Worker 新開的 /api/liff-command，用
     liff.getIDToken() 拿到的 ID Token 證明「這是誰」，Worker 那邊會拿去跟 LINE 官方的
     verify 端點驗證，不是隨便什麼人開這個網址都能打指令進去
-  - 2026-08-16：圖文選單開「!幫助」原本也是共用這頁（帶 auto=1，登入後直接送出、不顯示
+  - 2026-08-16：圖文選單開「!選單」原本也是共用這頁（帶 auto=1，登入後直接送出、不顯示
     表單），但這頁的 DOM 一開始就有 textarea/送出按鈕（只是 disabled），要等 liff.init()
     跑完才會被 JS 藏起來，中間那段空檔使用者會看到一閃而過的輸入表單，容易誤以為要打字。
     已經拆成獨立的 bot-auto.html（從一開始就沒有任何表單元素），圖文選單改連去那頁，這頁
@@ -313,7 +313,7 @@
   // cmd 沒帶（網址組錯、或直接手動開這頁沒帶參數）就不知道要組哪個指令，直接擋下來，
   // 不要讓使用者打完字才發現送不出去
   if (!cmdPrefix) {
-    hintEl.textContent = '這個表單網址缺少必要參數，麻煩從「!幫助」儀表板重新點一次按鈕進來。';
+    hintEl.textContent = '這個表單網址缺少必要參數，麻煩從「!選單」儀表板重新點一次按鈕進來。';
     return;
   }
 
@@ -345,7 +345,7 @@
     inputEl.disabled = true;
     submitEl.disabled = true;
     logoutLinkEl.style.display = 'none';
-    showStatus('已登出，請關閉這個分頁，從「!幫助」重新點一次按鈕進來即可用其他帳號登入。', 'ok');
+    showStatus('已登出，請關閉這個分頁，從「!選單」重新點一次按鈕進來即可用其他帳號登入。', 'ok');
   });
 
   submitEl.addEventListener('click', function () {

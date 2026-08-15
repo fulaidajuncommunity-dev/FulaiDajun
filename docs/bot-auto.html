@@ -6,7 +6,7 @@
 <title>富來大郡AI</title>
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <!--
-  2026-08-16 從 bot-form.html 拆出來的專用頁——原本圖文選單開「!幫助」是共用 bot-form.html
+  2026-08-16 從 bot-form.html 拆出來的專用頁——原本圖文選單開「!選單」是共用 bot-form.html
   帶 auto=1 這個模式，但那頁的 DOM 一開始就有完整的 textarea/送出按鈕（只是 disabled），
   要等 liff.init() 這個非同步流程跑完、確認是 autoMode 之後才用 JS 把它們藏起來，中間這段
   空檔使用者會看到一閃而過的輸入表單，容易誤以為「要打字」。
@@ -27,6 +27,14 @@
     https://fulaidajuncommunity-dev.github.io/FulaiDajun/bot-auto.html
   拿到新的 LIFF ID 之後貼到下面 LIFF_ID 這個常數，圖文選單的連結動作也要改指到
   `https://liff.line.me/{新的LIFF_ID}?cmd=...`（不用再帶 &auto=1，這頁本身就是純自動送出）。
+
+  2026-08-16 指令改名：cmd 帶的內部指令字串原本是 `!幫助`，後端已經收斂成只認 `!選單`
+  這一種寫法（見 community-line-bot/src/index.js 的 tryCommandShortcut）。這個 cmd 值是
+  設定在 LINE Official Account Manager／Developers Console 的圖文選單「動作」網址參數裡，
+  不是這份程式碼能控制的——記得手動把圖文選單連結改成
+  `https://liff.line.me/{LIFF_ID}?cmd=!%E9%81%B8%E5%96%AE`（即 URL-encode 過的 `!選單`，
+  `encodeURIComponent('!選單')` 算出來的結果——`!` 本身不會被跳脫），不然圖文選單那顆按鈕
+  會送出後端已經不認得的舊指令字串。
 -->
 <style>
   :root {
