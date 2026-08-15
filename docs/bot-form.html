@@ -19,6 +19,11 @@
   - 送出後打的是 community-line-bot 這個 Worker 新開的 /api/liff-command，用
     liff.getIDToken() 拿到的 ID Token 證明「這是誰」，Worker 那邊會拿去跟 LINE 官方的
     verify 端點驗證，不是隨便什麼人開這個網址都能打指令進去
+  - 2026-08-16：圖文選單開「!幫助」原本也是共用這頁（帶 auto=1，登入後直接送出、不顯示
+    表單），但這頁的 DOM 一開始就有 textarea/送出按鈕（只是 disabled），要等 liff.init()
+    跑完才會被 JS 藏起來，中間那段空檔使用者會看到一閃而過的輸入表單，容易誤以為要打字。
+    已經拆成獨立的 bot-auto.html（從一開始就沒有任何表單元素），圖文選單改連去那頁，這頁
+    專心只做「需要打自由文字」的指令表單，不再處理 auto 模式
 -->
 <style>
   :root {
@@ -171,11 +176,6 @@
   // !產公告這種需要知道「發到哪個群組」的指令才會帶這個，沒有的話就是私訊身份執行，
   // 見 community-line-bot 那邊 dashboardFormButton／handleLiffCommand 的說明
   var groupId = params.get('groupId') || '';
-  // 2026-08-14 圖文選單新增：LINE 官方後台的「連結」動作只能開網址，沒有「送文字但不顯示在
-  // 對話框」這種選項，改用這頁本來就有的 LIFF 驗證機制來達成——帶 auto=1 進來的話，這頁
-  // 不顯示表單，登入成功後直接把 cmd（例如 !幫助）當完整指令送出、推播結果，然後自動關閉
-  // 視窗，對話框全程不會出現任何文字
-  var autoMode = params.get('auto') === '1';
 
   if (cmdPrefix) {
     try {
@@ -246,10 +246,6 @@
       liff.login();
       return;
     }
-    if (autoMode) {
-      runAutoMode();
-      return;
-    }
     inputEl.disabled = false;
     submitEl.disabled = false;
     inputEl.focus();
@@ -260,46 +256,6 @@
     console.error('liff.init failed', err);
     showStatus('無法連上 LINE 驗證身份，請確認是從 LINE App 裡開啟這個表單。', 'warn');
   });
-
-  // auto=1（圖文選單用）：不需要使用者輸入任何東西，拿到身份就直接送出 cmd 本身、
-  // 推播完就關閉視窗
-  function runAutoMode() {
-    inputEl.style.display = 'none';
-    submitEl.style.display = 'none';
-    showStatus('開啟中…', 'ok');
-
-    var idToken = liff.getIDToken && liff.getIDToken();
-    if (!idToken) {
-      showStatus('無法取得身份驗證資訊，請重新從圖文選單點一次。', 'warn');
-      return;
-    }
-
-    // 同下面 submitEl 送出邏輯的說明：cmdPrefix 尾端可能殘留 LIFF liff.state 編碼造成的
-    // 「+」字元，這裡雖然通常是不帶參數的 bare 指令（例如 !幫助），還是順手清掉尾端保險
-    fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: idToken, text: cmdPrefix.replace(/[+\s]+$/, ''), groupId: groupId || undefined }),
-    })
-      .then(function (resp) { return resp.json().then(function (body) { return { ok: resp.ok, body: body }; }); })
-      .then(function (result) {
-        if (!result.ok || !result.body || !result.body.ok) {
-          showStatus((result.body && result.body.error) || '開啟失敗，請稍後再試一次。', 'warn');
-          return;
-        }
-        if (liff.isInClient && liff.isInClient()) {
-          liff.closeWindow();
-        } else {
-          try { window.close(); } catch (e) {
-            // 被瀏覽器擋下來的話會丟例外，忽略即可，使用者手動關閉分頁就好
-          }
-        }
-      })
-      .catch(function (err) {
-        console.error('auto submit failed', err);
-        showStatus('網路連線失敗，請確認網路後再試一次。', 'warn');
-      });
-  }
 
   logoutLinkEl.addEventListener('click', function (e) {
     e.preventDefault();

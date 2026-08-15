@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>富來大郡AI</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<!--
+  2026-08-16 從 bot-form.html 拆出來的專用頁——原本圖文選單開「!幫助」是共用 bot-form.html
+  帶 auto=1 這個模式，但那頁的 DOM 一開始就有完整的 textarea/送出按鈕（只是 disabled），
+  要等 liff.init() 這個非同步流程跑完、確認是 autoMode 之後才用 JS 把它們藏起來，中間這段
+  空檔使用者會看到一閃而過的輸入表單，容易誤以為「要打字」。
+
+  這頁從一開始就沒有任何表單元素，只有一句狀態文字，不會有「先看到表單、才變成選單」這種
+  畫面閃爍——單純負責「打開就悄悄送出 cmd、送完關閉視窗」這一件事，不像 bot-form.html
+  還要處理使用者輸入。
+
+  跟 bot-form.html 一樣共用同一套 query string 規則（實際會被包進 liff.state，見
+  resolveQueryParams 的說明），但只吃 cmd／groupId 這兩個參數，不需要 title/placeholder/
+  hint/content——這頁從來不會顯示表單，這些欄位用不到。
+
+  重要：LIFF 的「Endpoint URL」是跟 LIFF ID 綁死的一對一關係，沒辦法讓同一個 LIFF ID
+  同時指向 bot-form.html 又指向這一頁。要讓圖文選單真的連到這頁，需要在 LINE Developers
+  Console 這個 Messaging API channel 底下「另外新增一個 LIFF app」，Endpoint URL 填：
+    https://fulaidajuncommunity-dev.github.io/FulaiDajun/bot-auto.html
+  拿到新的 LIFF ID 之後貼到下面 LIFF_ID 這個常數，圖文選單的連結動作也要改指到
+  `https://liff.line.me/{新的LIFF_ID}?cmd=...`（不用再帶 &auto=1，這頁本身就是純自動送出）。
+-->
+<style>
+  :root {
+    --paper: #faf3e9;
+    --ink: #4a3726;
+    --ink-soft: #92795f;
+    --accent: #e8794f;
+    --warn-bg: #fdecda;
+    --warn-ink: #ad5b1c;
+    --font-body: -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #211a13; --ink: #f3e7d8; --ink-soft: #cbb59c; --accent: #f0925f;
+      --warn-bg: #3a2c18; --warn-ink: #f0a560;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .9rem;
+    text-align: center;
+    max-width: 320px;
+  }
+  .spinner {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 3px solid var(--warn-bg);
+    border-top-color: var(--accent);
+    animation: spin .8s linear infinite;
+  }
+  .spinner.hide { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  p { margin: 0; font-size: .92rem; line-height: 1.6; color: var(--ink-soft); }
+  p.warn { color: var(--warn-ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="spinner" id="spinner"></div>
+  <p id="status">開啟中…</p>
+</div>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+(function () {
+  // 記得照上面說明填新申請的 LIFF app id，不是 bot-form.html 那個
+  var LIFF_ID = 'REPLACE_ME_WITH_NEW_LIFF_ID';
+  var API_URL = 'https://community-line-bot.fulaidajuncommunity.workers.dev/api/liff-command';
+
+  var spinnerEl = document.getElementById('spinner');
+  var statusEl = document.getElementById('status');
+
+  function showError(text) {
+    spinnerEl.classList.add('hide');
+    statusEl.textContent = text;
+    statusEl.className = 'warn';
+  }
+
+  // 跟 bot-form.html 的 resolveQueryParams 同一套邏輯（見那邊的說明）：LIFF 從帶 query
+  // string 的網址開啟時，會把整包參數包進 liff.state 再多包一層 URL encode
+  function resolveQueryParams() {
+    var direct = new URLSearchParams(location.search);
+    var state = direct.get('liff.state');
+    if (!state) return direct;
+    if (state.charAt(0) === '?') state = state.slice(1);
+    return new URLSearchParams(state);
+  }
+
+  var params = resolveQueryParams();
+  // cmdPrefix 尾端可能殘留 liff.state 編碼造成的「+」字元（同 bot-form.html 的說明），
+  // 這頁送出的是完整指令、不會再接使用者輸入，一樣先清掉尾端保險
+  var cmd = (params.get('cmd') || '').replace(/[+\s]+$/, '');
+  var groupId = params.get('groupId') || '';
+
+  if (!cmd) {
+    showError('這個網址缺少必要參數，麻煩從圖文選單重新點一次。');
+    return;
+  }
+
+  if (!window.liff) {
+    showError('LIFF SDK 載入失敗，請確認網路連線後重新整理。');
+    return;
+  }
+
+  liff.init({ liffId: LIFF_ID }).then(function () {
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+
+    var idToken = liff.getIDToken && liff.getIDToken();
+    if (!idToken) {
+      showError('無法取得身份驗證資訊，請重新從圖文選單點一次。');
+      return;
+    }
+
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: idToken, text: cmd, groupId: groupId || undefined }),
+    })
+      .then(function (resp) { return resp.json().then(function (body) { return { ok: resp.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || !result.body || !result.body.ok) {
+          showError((result.body && result.body.error) || '開啟失敗，請稍後再試一次。');
+          return;
+        }
+        if (liff.isInClient && liff.isInClient()) {
+          liff.closeWindow();
+        } else {
+          // 桌面版 LINE 沒有內建 LIFF 瀏覽器，這個分頁是系統層級開的外部瀏覽器分頁，
+          // window.close() 常被瀏覽器安全限制擋下來（同 bot-form.html 的說明），失敗的話
+          // 就交給下面的文字提示，使用者自己手動關閉
+          try { window.close(); } catch (e) {}
+          spinnerEl.classList.add('hide');
+          statusEl.textContent = '已送出，這個視窗可以關閉了。';
+        }
+      })
+      .catch(function (err) {
+        console.error('auto submit failed', err);
+        showError('網路連線失敗，請確認網路後再試一次。');
+      });
+  }).catch(function (err) {
+    console.error('liff.init failed', err);
+    showError('無法連上 LINE 驗證身份，請確認是從 LINE App 裡開啟這個頁面。');
+  });
+})();
+</script>
+</body>
+</html>
