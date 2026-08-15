@@ -20,8 +20,10 @@
   hint/content——這頁從來不會顯示表單，這些欄位用不到。
 
   重要：LIFF 的「Endpoint URL」是跟 LIFF ID 綁死的一對一關係，沒辦法讓同一個 LIFF ID
-  同時指向 bot-form.html 又指向這一頁。要讓圖文選單真的連到這頁，需要在 LINE Developers
-  Console 這個 Messaging API channel 底下「另外新增一個 LIFF app」，Endpoint URL 填：
+  同時指向 bot-form.html 又指向這一頁。bot-form.html 繼續用原本既有的那組 LIFF ID
+  （結尾 8KD6wVsP，儀表板所有打字表單按鈕共用的那組，不要動）；要讓圖文選單真的連到這頁，
+  需要在 LINE Developers Console 這個 Messaging API channel 底下「另外新增一個 LIFF
+  app」，Endpoint URL 填：
     https://fulaidajuncommunity-dev.github.io/FulaiDajun/bot-auto.html
   拿到新的 LIFF ID 之後貼到下面 LIFF_ID 這個常數，圖文選單的連結動作也要改指到
   `https://liff.line.me/{新的LIFF_ID}?cmd=...`（不用再帶 &auto=1，這頁本身就是純自動送出）。
