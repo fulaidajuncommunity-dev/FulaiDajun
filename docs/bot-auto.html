@@ -88,9 +88,11 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
 (function () {
-  // 「富來大郡LIFF Auto」這支獨立的 LIFF app（2026-08-16 新增，Endpoint URL 指這一頁），
-  // 跟 bot-form.html 用的 LIFF_ID（結尾 8KD6wVsP）是不同支
-  var LIFF_ID = '2011123526-yGkre3rp';
+  // 「富來大郡跳轉」這支獨立的 LIFF app（2026-08-16 新增，Endpoint URL 指這一頁），
+  // 跟 bot-form.html 用的 LIFF_ID（結尾 8KD6wVsP）是不同支，但同一個 channel（2011103776）
+  // 底下——第一次建錯挑到別的 channel，token audience 對不上，backend 驗證會失敗
+  // （見 verifyLiffIdToken 的說明），這支是重建過、確認同 channel 之後的正確版本
+  var LIFF_ID = '2011103776-bKqxHWPg';
   var API_URL = 'https://community-line-bot.fulaidajuncommunity.workers.dev/api/liff-command';
 
   var spinnerEl = document.getElementById('spinner');
