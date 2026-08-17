@@ -217,12 +217,19 @@
   // allowFile：這個表單要不要顯示「選擇檔案」欄位（2026-08-16 !委員 表單新增），
   // 見 community-line-bot 那邊 dashboardFormButton 的說明
   var allowFile = params.get('allowFile') === '1';
+  // requesterId（2026-08-17 新增）：「!選單」當初的發起人 userId，原樣送回後端比對
+  // idToken 驗證出來的身份是不是同一個人，只有發起人自己能真的送出表單。這裡單純是原樣
+  // 轉發，不用信任這個值本身——後端真正信任的是 idToken，見 handleLiffCommand 的說明
+  var requesterId = params.get('requesterId') || '';
 
   if (cmdPrefix) {
     try {
       sessionStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ cmdPrefix: cmdPrefix, title: title, placeholder: placeholder, hint: hint, groupId: groupId, allowFile: allowFile })
+        JSON.stringify({
+          cmdPrefix: cmdPrefix, title: title, placeholder: placeholder, hint: hint,
+          groupId: groupId, allowFile: allowFile, requesterId: requesterId,
+        })
       );
     } catch (e) {
       // sessionStorage 存取失敗（例如瀏覽器擋第三方儲存）不影響這次的正常流程，忽略即可
@@ -237,6 +244,7 @@
         hint = saved.hint || '';
         groupId = saved.groupId || '';
         allowFile = !!saved.allowFile;
+        requesterId = saved.requesterId || '';
       }
     } catch (e) {
       // 存起來的資料壞掉或讀不到，就照舊走下面「缺少參數」那個分支，不用特別處理
@@ -423,6 +431,7 @@
               text: cmdText,
               content: content,
               groupId: groupId || undefined,
+              requesterId: requesterId || undefined,
               files: fileInfos && fileInfos.length ? fileInfos : undefined,
             }),
           });
