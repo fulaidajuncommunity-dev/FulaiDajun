@@ -16,6 +16,10 @@
   .notice-date { font-family: var(--font-mono); font-size: .78rem; color: var(--ink-soft); }
   .notice-card h3 { font-family: var(--font-display); font-size: 1.05rem; margin: 0; }
   .notice-card p { margin: 0; font-size: .87rem; color: var(--ink-soft); line-height: 1.65; }
+  .notice-card ul { margin: 0; padding-left: 1.4em; font-size: .87rem; color: var(--ink-soft); line-height: 1.65; }
+  .notice-card li { margin-bottom: .25rem; }
+  .notice-status { color: var(--ink-soft); font-size: .9rem; text-align: center; padding: 2rem 0; }
+  .notice-doc { margin: 0; font-size: .72rem; color: var(--ink-soft); font-family: var(--font-mono); }
 </style>
 </head>
 <body data-page="announcements">
@@ -45,31 +49,8 @@
     <p class="lede">管理委員會發布的公告、活動通知與維修資訊，將公布於此。</p>
   </header>
 
-  <div class="notice-list">
-    <article class="notice-card">
-      <div class="notice-head"><span class="tag-pill maint">施工公告</span><span class="notice-date">2026-08-06</span></div>
-      <h3>社區新增弱電保安系統工程</h3>
-      <p>為提升居住安全、強化防汛與治安死角，管委會將於 8/7（五）09:00–17:00 進行全區弱電保安系統新增工程，內容包括高解析度監視錄影系統新增、感應門禁系統優化、地下室緊急求助對講機補強，重點加強各棟梯廳、地下室梯廳、資源回收室外、安全梯口、頂樓及公共空間。施工期間部分區域將有鑽孔、拉線噪音，並可能短暫封閉部分通道，造成不便敬請見諒。</p>
-      <p style="margin:0;font-size:.72rem;color:var(--ink-soft);font-family:var(--font-mono);">文號：富來(管)字第 115080601 號</p>
-    </article>
-    <article class="notice-card">
-      <div class="notice-head"><span class="tag-pill maint">施工公告</span><span class="notice-date">2026-08-06</span></div>
-      <h3>永大電梯拆除電梯保護膜工程</h3>
-      <p>本社區 C5-2 住戶已完成裝潢保護拆除，永大電梯工程師將於 8/7（五）09:00–17:00 進場拆除 C 棟客梯、貨梯內的保護膜，施工期間造成不便，敬請見諒。</p>
-      <p style="margin:0;font-size:.72rem;color:var(--ink-soft);font-family:var(--font-mono);">文號：富來(管)字第 115080601 號</p>
-    </article>
-    <article class="notice-card">
-      <div class="notice-head"><span class="tag-pill notice">生活公告</span><span class="notice-date">2026-08-06</span></div>
-      <h3>請勿以人類食物或廚餘餵食犬隻</h3>
-      <p>為維護社區環境衛生及保障犬隻健康，請住戶勿以人類食物或廚餘餵食社區犬隻：人類食物易造成犬隻胰臟炎、腎臟負擔或中毒（如洋蔥、大蒜、巧克力等）；隨意餵食或丟棄廚餘易滋生蚊蠅、老鼠並影響環境整潔；亂丟骨頭或硬物則可能導致犬隻食道阻塞或腸胃穿孔。如經發現違規丟棄廚餘者，將請丟棄者自行清理回收。感謝配合，共同維護安全、整潔的社區環境。</p>
-      <p style="margin:0;font-size:.72rem;color:var(--ink-soft);font-family:var(--font-mono);">文號：富來(管)字第 115080601 號</p>
-    </article>
-    <article class="notice-card">
-      <div class="notice-head"><span class="tag-pill notice">公告</span><span class="notice-date">2026-07-30</span></div>
-      <h3>E-tag 系統設備修復完成暨申購說明</h3>
-      <p>E-tag 系統設備已修復完畢並恢復正常運作，即日起開放住戶至一樓管理中心辦理申購。為維護社區停車管理秩序與資源合理分配，每戶上限持有總數量為 4 張（含先前已持有之 E-tag 貼紙）。</p>
-      <p style="margin:0;font-size:.72rem;color:var(--ink-soft);font-family:var(--font-mono);">文號：富來(管)字第 115073001 號</p>
-    </article>
+  <div class="notice-list" id="notice-list">
+    <p class="notice-status" id="notice-status">公告載入中…</p>
   </div>
 </div>
 
@@ -93,5 +74,67 @@
   </div>
 </footer>
 <script src="assets/nav.js"></script>
+<script>
+// 2026-08-17 改成動態抓取，取代原本寫死在這個檔案裡的靜態公告卡片——資料來源是
+// community-line-bot 這支 Worker 新增的 GET /api/announcements（見那支 repo 的
+// handleAnnouncementsApi 說明），只回「目前生效中」（7 天效期內、還沒過期）的公告，
+// 跟 LINE 群組裡「!列公告」看到的是同一批資料，只是這裡只顯示文字內容，不含公告圖片本身
+// （圖片沒有長期公開網址可以連，見那支 Worker 的說明）。
+(function () {
+  var API_URL = 'https://community-line-bot.fulaidajuncommunity.workers.dev/api/announcements';
+  var listEl = document.getElementById('notice-list');
+  var statusEl = document.getElementById('notice-status');
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  // sections 是後端存的結構化內容，每一項是 { type: 'paragraph', text } 或
+  // { type: 'list', items: [...] }，跟 LINE 那邊 !產公告 產圖用的是同一份資料
+  function renderSectionsHtml(sections) {
+    return (sections || [])
+      .map(function (s) {
+        if (s.type === 'list') {
+          return '<ul>' + (s.items || []).map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul>';
+        }
+        return '<p>' + escapeHtml(s.text) + '</p>';
+      })
+      .join('');
+  }
+
+  function renderAnnouncement(a) {
+    var article = document.createElement('article');
+    article.className = 'notice-card';
+    article.innerHTML =
+      '<div class="notice-head"><span class="tag-pill notice">公告</span><span class="notice-date">' + escapeHtml(a.dateText) + '</span></div>' +
+      '<h3>' + escapeHtml(a.subject) + '</h3>' +
+      renderSectionsHtml(a.sections) +
+      (a.closingNote ? '<p>' + escapeHtml(a.closingNote) + '</p>' : '') +
+      (a.docNumber ? '<p class="notice-doc">文號：' + escapeHtml(a.docNumber) + '</p>' : '');
+    return article;
+  }
+
+  fetch(API_URL)
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      var announcements = (data && data.announcements) || [];
+      if (!announcements.length) {
+        statusEl.textContent = '目前沒有生效中的公告。';
+        return;
+      }
+      listEl.innerHTML = '';
+      announcements.forEach(function (a) { listEl.appendChild(renderAnnouncement(a)); });
+    })
+    .catch(function (err) {
+      console.error('載入公告失敗', err);
+      statusEl.textContent = '公告暫時無法載入，請稍後再試一次。';
+    });
+})();
+</script>
 </body>
 </html>
