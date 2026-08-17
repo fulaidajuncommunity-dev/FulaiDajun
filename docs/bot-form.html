@@ -124,7 +124,8 @@
   .status.warn { background: var(--warn-bg); color: var(--warn-ink); }
   .status.ok { background: var(--ok-bg); color: var(--ok-ink); }
   /* 2026-08-16 新增：!委員 表單的選填夾檔欄位，只有帶 allowFile=1 的表單才會顯示
-     （見 JS 那段 allowFile 的說明），預設用 inline style="display:none" 藏起來 */
+     （見 JS 那段 allowFile 的說明），預設用 inline style="display:none" 藏起來。
+     2026-08-17 從單檔改多檔，多加一行「已選擇的檔案」清單顯示選了哪些檔案 */
   .file-row {
     display: flex;
     align-items: center;
@@ -148,6 +149,13 @@
     cursor: pointer;
     display: none;
   }
+  .file-list {
+    font-size: .8rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    overflow-wrap: break-word;
+    display: none;
+  }
 </style>
 </head>
 <body>
@@ -160,9 +168,10 @@
   <div id="status" class="status"></div>
   <textarea id="input" placeholder="請稍候，載入中…" disabled></textarea>
   <div class="file-row" id="file-row" style="display:none;">
-    <input type="file" id="file-input" disabled>
+    <input type="file" id="file-input" multiple disabled>
     <button type="button" class="file-clear" id="file-clear">清除</button>
   </div>
+  <p class="file-list" id="file-list"></p>
   <button id="submit" type="button" disabled>送出</button>
 </div>
 
@@ -245,10 +254,13 @@
   var fileRowEl = document.getElementById('file-row');
   var fileInputEl = document.getElementById('file-input');
   var fileClearEl = document.getElementById('file-clear');
+  var fileListEl = document.getElementById('file-list');
 
-  // 跟 community-line-bot 的 TRELLO_MAX_ATTACHMENT_BYTES 用同一個上限（Trello 附件本身
-  // 就有這個硬性大小限制），client 端先擋掉超過的檔案，不用等送到後端才發現失敗
+  // 跟 community-line-bot 的 TRELLO_MAX_ATTACHMENT_BYTES／LIFF_FORM_MAX_FILES 用同一組上限
+  // （單檔大小是 Trello 附件本身的硬性大小限制，張數上限見後端註解），client 端先擋掉超過的
+  // 情況，不用等送到後端才發現失敗。2026-08-17 從單檔改多檔。
   var MAX_FILE_BYTES = 10 * 1024 * 1024;
+  var MAX_FILES = 5;
 
   titleEl.textContent = title;
   inputEl.placeholder = placeholder;
@@ -271,43 +283,58 @@
     if (allowFile) fileInputEl.disabled = busy;
   }
 
-  fileClearEl.addEventListener('click', function () {
+  function clearFileSelection() {
     fileInputEl.value = '';
     fileClearEl.style.display = 'none';
-  });
+    fileListEl.style.display = 'none';
+    fileListEl.textContent = '';
+  }
+
+  fileClearEl.addEventListener('click', clearFileSelection);
 
   fileInputEl.addEventListener('change', function () {
-    var file = fileInputEl.files && fileInputEl.files[0];
-    if (!file) {
-      fileClearEl.style.display = 'none';
+    var files = fileInputEl.files ? Array.prototype.slice.call(fileInputEl.files) : [];
+    if (!files.length) {
+      clearFileSelection();
       return;
     }
-    if (file.size > MAX_FILE_BYTES) {
-      showStatus('這個檔案超過 10MB，麻煩壓縮或改選較小的檔案。', 'warn');
-      fileInputEl.value = '';
-      fileClearEl.style.display = 'none';
+    if (files.length > MAX_FILES) {
+      showStatus('最多只能選 ' + MAX_FILES + ' 個檔案，麻煩減少後再選一次。', 'warn');
+      clearFileSelection();
+      return;
+    }
+    var oversized = files.filter(function (f) { return f.size > MAX_FILE_BYTES; });
+    if (oversized.length) {
+      showStatus('「' + oversized[0].name + '」超過 10MB，麻煩壓縮或改選較小的檔案。', 'warn');
+      clearFileSelection();
       return;
     }
     statusEl.classList.remove('show');
     fileClearEl.style.display = '';
+    fileListEl.style.display = '';
+    fileListEl.textContent = '已選擇 ' + files.length + ' 個檔案：' + files.map(function (f) { return f.name; }).join('、');
   });
 
-  // 把選好的檔案讀成 base64 data URL（"data:image/jpeg;base64,xxx" 這種格式），送到後端的
+  // 把選好的檔案都讀成 base64 data URL（"data:image/jpeg;base64,xxx" 這種格式），送到後端的
   // JSON body 裡（見 sendCommand），data URL 的 header 部分後端會自己切掉，見
-  // community-line-bot 的 handleLiffCommand 說明。沒選檔案的話直接 resolve(null)
-  function readSelectedFile() {
-    var file = fileInputEl && fileInputEl.files && fileInputEl.files[0];
-    if (!file) return Promise.resolve(null);
-    return new Promise(function (resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = function () {
-        resolve({ fileData: reader.result, fileName: file.name, fileType: file.type || 'application/octet-stream' });
-      };
-      reader.onerror = function () {
-        reject(reader.error || new Error('read file failed'));
-      };
-      reader.readAsDataURL(file);
-    });
+  // community-line-bot 的 handleLiffCommand 說明。2026-08-17 從單檔改多檔，回傳陣列；
+  // 沒選檔案的話回傳空陣列。任一個檔案讀取失敗就整批視為失敗（跟後端「整批擋下來」的
+  // 原則一致，不會出現「有些檔案附上了、有些沒有」這種使用者搞不清楚狀況的半殘結果）
+  function readSelectedFiles() {
+    var files = fileInputEl && fileInputEl.files ? Array.prototype.slice.call(fileInputEl.files) : [];
+    if (!files.length) return Promise.resolve([]);
+    return Promise.all(files.map(function (file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          resolve({ fileData: reader.result, fileName: file.name, fileType: file.type || 'application/octet-stream' });
+        };
+        reader.onerror = function () {
+          reject(reader.error || new Error('read file failed'));
+        };
+        reader.readAsDataURL(file);
+      });
+    }));
   }
 
   // cmd 沒帶（網址組錯、或直接手動開這頁沒帶參數）就不知道要組哪個指令，直接擋下來，
@@ -379,14 +406,15 @@
       var cmdText = cmdPrefix.replace(/[+\s]+$/, '') + ' ' + content;
 
       // 檔案要先讀成 base64（非同步）才能一起送出，讀取失敗（例如檔案被移除、瀏覽器權限問題）
-      // 不該讓整個送出動作卡住，改成不夾檔繼續送，只是提醒一下
-      readSelectedFile()
+      // 不該讓整個送出動作卡住，改成不夾檔繼續送，只是提醒一下。2026-08-17 從單檔改多檔，
+      // readSelectedFiles 回傳陣列（可能是空陣列）
+      readSelectedFiles()
         .catch(function (err) {
           console.error('read file failed', err);
           showStatus('檔案讀取失敗，將不夾檔繼續送出…', 'warn');
-          return null;
+          return [];
         })
-        .then(function (fileInfo) {
+        .then(function (fileInfos) {
           return fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -395,9 +423,7 @@
               text: cmdText,
               content: content,
               groupId: groupId || undefined,
-              fileData: fileInfo ? fileInfo.fileData : undefined,
-              fileName: fileInfo ? fileInfo.fileName : undefined,
-              fileType: fileInfo ? fileInfo.fileType : undefined,
+              files: fileInfos && fileInfos.length ? fileInfos : undefined,
             }),
           });
         })
@@ -410,10 +436,7 @@
           }
           showStatus('已送出，處理結果會顯示在 LINE 對話裡，這個視窗可以關閉了。', 'ok');
           inputEl.value = '';
-          if (allowFile) {
-            fileInputEl.value = '';
-            fileClearEl.style.display = 'none';
-          }
+          if (allowFile) clearFileSelection();
           if (liff.isInClient && liff.isInClient()) {
             // 手機走 LINE 內建的 LIFF 瀏覽器，liff.closeWindow() 是官方提供、保證能關閉的方式
             setTimeout(function () { liff.closeWindow(); }, 1500);
