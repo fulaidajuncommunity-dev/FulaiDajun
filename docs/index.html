@@ -67,22 +67,8 @@
 
   <section class="section">
     <h2>最新公告</h2>
-    <div class="card-grid">
-      <a class="card" href="announcements.html">
-        <span class="tag-pill maint">施工公告</span>
-        <h3>社區新增弱電保安系統工程</h3>
-        <p>8/7（五）09:00–17:00 進行全區弱電保安系統新增工程，含監視、門禁與求助系統補強，施工期間部分區域將有噪音並可能短暫封閉通道。</p>
-      </a>
-      <a class="card" href="announcements.html">
-        <span class="tag-pill maint">施工公告</span>
-        <h3>永大電梯拆除電梯保護膜工程</h3>
-        <p>8/7（五）09:00–17:00 永大電梯工程師將進場拆除 C 棟客梯、貨梯內的保護膜，施工期間造成不便，敬請見諒。</p>
-      </a>
-      <a class="card" href="announcements.html">
-        <span class="tag-pill notice">生活公告</span>
-        <h3>請勿以人類食物或廚餘餵食犬隻</h3>
-        <p>為維護社區環境衛生及保障犬隻健康，請住戶勿以人類食物或廚餘餵食社區犬隻，共同維護安全、整潔的社區環境。</p>
-      </a>
+    <div class="card-grid" id="home-notice-grid">
+      <p id="home-notice-status" style="color:var(--ink-soft);font-size:.9rem;">公告載入中…</p>
     </div>
     <a class="btn btn-outline" href="announcements.html" style="align-self:center;">查看全部公告</a>
   </section>
@@ -126,5 +112,63 @@
   </div>
 </footer>
 <script src="assets/nav.js"></script>
+<script>
+// 2026-08-17 改成動態抓取，取代原本寫死在這個檔案裡的靜態公告卡片——資料來源、規則都
+// 跟 announcements.html 那頁一樣（見那頁的說明），只回「目前生效中」的公告，只是首頁這裡
+// 只當「最新消息」預覽用，最多顯示 3 則、每則只截一小段文字，完整內容要點進公告欄頁面看
+(function () {
+  var API_URL = 'https://community-line-bot.fulaidajuncommunity.workers.dev/api/announcements';
+  var MAX_HOME_NOTICES = 3;
+  var EXCERPT_LENGTH = 70;
+  var gridEl = document.getElementById('home-notice-grid');
+  var statusEl = document.getElementById('home-notice-status');
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  // 首頁只是預覽卡片，不需要完整排版——把 sections 全部文字接起來，截一小段當摘要
+  function buildExcerpt(a) {
+    var parts = (a.sections || []).map(function (s) {
+      return s.type === 'list' ? (s.items || []).join('，') : (s.text || '');
+    });
+    var full = parts.join('').trim();
+    if (full.length <= EXCERPT_LENGTH) return full;
+    return full.slice(0, EXCERPT_LENGTH) + '…';
+  }
+
+  function renderNoticeCard(a) {
+    var card = document.createElement('a');
+    card.className = 'card';
+    card.href = 'announcements.html';
+    card.innerHTML =
+      '<span class="tag-pill notice">公告</span>' +
+      '<h3>' + escapeHtml(a.subject) + '</h3>' +
+      '<p>' + escapeHtml(buildExcerpt(a)) + '</p>';
+    return card;
+  }
+
+  fetch(API_URL)
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      var announcements = ((data && data.announcements) || []).slice(0, MAX_HOME_NOTICES);
+      if (!announcements.length) {
+        statusEl.textContent = '目前沒有生效中的公告。';
+        return;
+      }
+      gridEl.innerHTML = '';
+      announcements.forEach(function (a) { gridEl.appendChild(renderNoticeCard(a)); });
+    })
+    .catch(function (err) {
+      console.error('載入公告失敗', err);
+      statusEl.textContent = '公告暫時無法載入，請稍後再試一次。';
+    });
+})();
+</script>
 </body>
 </html>
