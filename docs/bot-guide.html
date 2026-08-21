@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LINE 機器人開通教學・富來大郡社區</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  /* 這頁專用樣式：步驟編號、LINE App 情境示意（手機外框、聊天泡泡、圖文選單、LIFF 表單畫面），
+     色票沿用 site.css 既有的 design tokens，示意畫面裡「社區秘書」卡片的顏色（#6f4a30／#fffdf8／
+     #92795f）直接對應 community-line-bot 這支 Worker 實際送出的 Flex Message 配色，
+     LIFF 表單畫面的配色則對應 bot-form.html 本身的樣式，並非隨意配色。
+     三種身份（一般住戶／社區經理・委員／廠商）分別用 --jia（藍）／--accent（橘）／--yi（金）
+     三個既有 token 上色，同一個顏色從標題色塊、步驟編號到卡片左側色條全程一致，
+     刻意跟「常見問題」以外的每個區塊都對齊身份顏色，避免三條流程的步驟混在一起分不清楚 */
+  .step-list { display: flex; flex-direction: column; gap: 1.2rem; }
+  .step {
+    background: var(--surface); border: 1px solid var(--line); border-left-width: 5px; border-left-style: solid;
+    border-radius: 16px; box-shadow: var(--shadow); padding: 1.4rem 1.5rem; display: grid;
+    grid-template-columns: auto 1fr; gap: 0 1.2rem;
+  }
+  .step-num {
+    grid-row: span 2; width: 2.5rem; height: 2.5rem; border-radius: 50%;
+    color: #fff; font-family: var(--font-display);
+    font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+  }
+  .step h3 { font-family: var(--font-display); font-weight: 800; font-size: 1.02rem; margin: 0 0 .35rem; }
+  .step p { margin: 0; font-size: .87rem; color: var(--ink-soft); line-height: 1.7; }
+  .step .step-visual { grid-column: 2; margin-top: 1.1rem; }
+  .step .step-note {
+    margin-top: .7rem; font-size: .8rem; color: var(--warn-ink); background: var(--warn-bg);
+    border-radius: 10px; padding: .5rem .8rem; display: inline-block;
+  }
+
+  /* 身份配色：resident=一般住戶（藍） committee=社區經理／委員（橘） vendor=廠商（金） */
+  .step.resident { border-left-color: var(--jia); }
+  .step.committee { border-left-color: var(--accent); }
+  .step.vendor { border-left-color: var(--yi); }
+  .step-num.resident { background: var(--jia); }
+  .step-num.committee { background: var(--accent); }
+  .step-num.vendor { background: var(--yi); }
+
+  /* 每條流程開頭的色塊標題（取代舊版單一 h2），一眼就能認出現在看的是哪個身份 */
+  .track-band {
+    border-radius: 18px; padding: 1.1rem 1.4rem; display: flex; align-items: flex-start; gap: .9rem;
+    scroll-margin-top: 5rem;
+  }
+  .track-band .icon { font-size: 1.7rem; line-height: 1; }
+  .track-band h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; }
+  .track-band p { margin: .3rem 0 0; font-size: .84rem; color: var(--ink-soft); line-height: 1.6; }
+  .track-band.resident { background: var(--jia-bg); }
+  .track-band.committee { background: var(--accent-soft); }
+  .track-band.vendor { background: var(--yi-bg); }
+
+  /* 身份總覽：3 張可點跳轉的卡片 */
+  .audience-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+  .audience-card {
+    display: flex; flex-direction: column; gap: .4rem; text-decoration: none; color: inherit;
+    border-radius: 18px; padding: 1.2rem 1.3rem; border: 1px solid var(--line); box-shadow: var(--shadow);
+    transition: transform .15s ease;
+  }
+  .audience-card:hover { transform: translateY(-3px); }
+  .audience-card .icon { font-size: 1.6rem; }
+  .audience-card h3 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1rem; }
+  .audience-card p { margin: 0; font-size: .82rem; color: var(--ink-soft); line-height: 1.6; }
+  .audience-card .tag { font-size: .72rem; font-weight: 700; }
+  .audience-card.resident { background: var(--jia-bg); } .audience-card.resident .tag { color: var(--jia); }
+  .audience-card.committee { background: var(--accent-soft); } .audience-card.committee .tag { color: var(--accent); }
+  .audience-card.vendor { background: var(--yi-bg); } .audience-card.vendor .tag { color: var(--yi); }
+
+  /* 加好友區塊：真實 QR Code（解碼自官方帳號後台提供的加好友 QR）＋一鍵開啟 LINE 的按鈕，
+     兩者指向同一個加好友連結 https://line.me/R/ti/p/@940npvic */
+  .add-friend-box {
+    display: flex; gap: 1.1rem; align-items: center; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.2rem;
+  }
+  .add-friend-box img { width: 116px; height: 116px; border-radius: 10px; border: 1px solid var(--line); background: #fff; padding: 6px; }
+  .add-friend-box .afb-info { flex: 1; min-width: 190px; display: flex; flex-direction: column; gap: .6rem; }
+  .line-add-btn {
+    display: inline-flex; align-items: center; gap: .5rem; background: #06c755; color: #fff;
+    font-weight: 700; font-size: .86rem; padding: .65rem 1.1rem; border-radius: 999px;
+    text-decoration: none; width: fit-content;
+  }
+  .line-add-btn:hover { filter: brightness(1.05); }
+
+  /* ---- 手機外框（圖文選單截圖、聊天泡泡共用） ---- */
+  .phone {
+    max-width: 340px; margin: 0 auto; border-radius: 22px; overflow: hidden;
+    border: 1px solid var(--line); box-shadow: var(--shadow); background: #fff;
+  }
+  .phone-bar {
+    background: #06c755; color: #fff; padding: .55rem 1rem; font-size: .84rem; font-weight: 700;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .phone-bar .avatar {
+    width: 1.5rem; height: 1.5rem; border-radius: 50%; background: #fff8ee; color: #6f4a30;
+    display: flex; align-items: center; justify-content: center; font-size: .8rem;
+  }
+  .phone-body { background: #cfe0d4; padding: .9rem; }
+  @media (prefers-color-scheme: dark) { .phone { background: #2b2119; } .phone-body { background: #3a4a3f; } }
+
+  /* rich menu 截圖區塊：實際圖片 + 指向提示 */
+  .richmenu-shot img { display: block; width: 100%; border-radius: 8px; }
+  .richmenu-callout {
+    display: flex; align-items: center; gap: .4rem; justify-content: center;
+    margin-top: .6rem; font-size: .8rem; font-weight: 700; color: #fff;
+    background: var(--ink-soft); border-radius: 999px; padding: .4rem 1rem; width: fit-content;
+    margin-left: auto; margin-right: auto;
+  }
+  .bounce { display: inline-block; animation: bounce-y 1.2s ease-in-out infinite; }
+  @keyframes bounce-y { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+  /* Flex Message 卡片示意（社區秘書指令手冊，內容跟真正的 Worker 送出的一致，
+     只用 highlight／dim 標出「這一步要點哪一顆」，其餘按鈕刻意淡化避免看錯） */
+  .flex-card { border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+  .flex-head { background: #6f4a30; padding: .85rem .9rem; }
+  .flex-head .t1 { color: #fff8ee; font-weight: 800; font-size: .92rem; }
+  .flex-head .t2 { color: #e8d9c5; font-size: .68rem; margin-top: .2rem; }
+  .flex-body { background: #fffdf8; padding: .85rem .9rem; display: flex; flex-direction: column; gap: .3rem; }
+  .flex-label { font-size: .72rem; font-weight: 700; color: #4a3726; }
+  .flex-desc { font-size: .68rem; color: #92795f; margin-bottom: .1rem; }
+  .flex-btn {
+    border: none; border-radius: 6px; padding: .5rem .6rem; font-size: .74rem; font-weight: 700;
+    color: #fff; background: #92795f; text-align: center; width: 100%; transition: opacity .15s ease;
+  }
+  .flex-btn-row { display: flex; gap: .5rem; }
+  .flex-btn-row .flex-btn { flex: 1; position: relative; }
+  .flex-btn.dim { opacity: .38; }
+  .flex-btn.highlight {
+    outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 0 4px rgba(232,121,79,.25);
+  }
+  .point-badge {
+    position: absolute; top: -1.55rem; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff;
+    font-size: .64rem; font-weight: 700; padding: .2rem .5rem; border-radius: 999px; white-space: nowrap;
+  }
+  .point-badge::after {
+    content: ''; position: absolute; bottom: -.3rem; left: 50%; transform: translateX(-50%);
+    border: .3rem solid transparent; border-top-color: var(--accent);
+  }
+  .flex-hr { border: none; border-top: 1px solid #ecddc4; margin: .3rem 0; }
+  .flex-foot { font-size: .68rem; color: #92795f; line-height: 1.5; }
+
+  /* LIFF 表單畫面示意（對應 bot-form.html 實際版面與配色） */
+  .liff-mock {
+    max-width: 340px; margin: 0 auto; border: 1px solid var(--line); border-radius: 20px;
+    box-shadow: var(--shadow); overflow: hidden; background: #faf3e9;
+  }
+  @media (prefers-color-scheme: dark) { .liff-mock { background: #211a13; } }
+  .liff-mock-inner { padding: 1.1rem 1.1rem 1.3rem; display: flex; flex-direction: column; gap: .8rem; }
+  .liff-mock-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .liff-mock-top h4 { margin: 0; font-size: 1rem; color: #4a3726; }
+  .liff-mock-top span { font-size: 1rem; opacity: .5; }
+  .liff-mock-hint { font-size: .78rem; color: #92795f; line-height: 1.55; margin: 0; }
+  .liff-mock-textarea {
+    border: 1px solid #ecddc4; border-radius: 12px; padding: .8rem .9rem; min-height: 3.6rem;
+    background: #fffdf8; font-size: .92rem; color: #4a3726;
+  }
+  .liff-mock-textarea.typed { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(232,121,79,.18); }
+  .liff-mock-btn {
+    border: none; border-radius: 12px; padding: .8rem; font-size: .92rem; font-weight: 700;
+    background: #e8794f; color: #fff; text-align: center;
+  }
+  .liff-mock-status {
+    border-radius: 10px; padding: .6rem .8rem; font-size: .78rem; line-height: 1.5; background: #eaf6ec; color: #2f6b3e;
+  }
+
+  /* LINE 對話泡泡示意（送出後系統即時回覆） */
+  .bubble-row { display: flex; margin-bottom: .55rem; }
+  .bubble {
+    max-width: 92%; background: #fff; border-radius: 4px 14px 14px 14px; padding: .65rem .8rem;
+    font-size: .78rem; line-height: 1.55; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,.12);
+  }
+  .bubble-name { font-size: .68rem; color: #5c6a58; margin: 0 0 .25rem .1rem; }
+</style>
+</head>
+<body data-page="bot-guide">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">富來大郡社區</span>
+      <span class="brand-sub">FU LAI DA JUN</span>
+    </a>
+    <button class="nav-toggle" aria-label="開啟選單" aria-expanded="false">☰</button>
+    <nav class="site-nav" aria-label="主導覽">
+      <a href="index.html" data-page="home">首頁</a>
+      <a href="announcements.html" data-page="announcements">社區公告欄</a>
+      <a href="about.html" data-page="about">關於社區／管委會</a>
+      <a href="rules-fees.html" data-page="rules-fees">管理費用</a>
+      <a href="facilities.html" data-page="facilities">設施與服務</a>
+      <a href="staff.html" data-page="staff">社區服務人員</a>
+      <a href="bot-guide.html" data-page="bot-guide">機器人開通教學</a>
+      <a href="cleaning.html" data-page="cleaning">清潔排班表</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">使用教學</p>
+    <h1>如何開通「社區秘書」LINE 機器人</h1>
+    <p class="lede">
+      依身份不同，能用的功能跟開通方式也不一樣：<strong>一般住戶</strong>加好友後就能直接用，
+      <strong>社區經理／委員</strong>與<strong>廠商</strong>則要多登記一次身份，經委員審核通過後才會開通。
+      先看下面選出你的身份，再照對應的顏色往下讀就好，不用整頁都看。
+    </p>
+  </header>
+
+  <section class="audience-grid">
+    <a class="audience-card resident" href="#resident">
+      <span class="icon">🏠</span>
+      <span class="tag">不用開通</span>
+      <h3>一般住戶</h3>
+      <p>加好友即可，直接使用「聯絡委員」「規約辦法」這兩個最常用的功能。</p>
+    </a>
+    <a class="audience-card committee" href="#committee">
+      <span class="icon">🗂️</span>
+      <span class="tag">需登記「登委」</span>
+      <h3>社區經理／委員</h3>
+      <p>加好友後多登記一次身份，審核通過後解鎖查任務、產公告、財報等管理功能。</p>
+    </a>
+    <a class="audience-card vendor" href="#vendor">
+      <span class="icon">🔧</span>
+      <span class="tag">需登記「登廠」</span>
+      <h3>廠商</h3>
+      <p>加好友後登記廠商身份，審核通過後委員才能主動聯繫，往來對話自動轉達。</p>
+    </a>
+  </section>
+
+  <section class="section">
+    <h2>不管哪種身份，都先做這兩步</h2>
+    <p class="sub">加好友、點開圖文選單，三種身份共用</p>
+    <div class="step-list">
+
+      <div class="step" style="border-left-color:var(--line);">
+        <div class="step-num" style="background:var(--ink-soft);">1</div>
+        <div>
+          <h3>將「社區秘書」加為 LINE 好友</h3>
+          <p>用 LINE 掃描管委會提供的官方帳號 QR Code，或直接搜尋帳號 ID 加入好友。加入好友後即可看到聊天視窗，還不需要輸入任何指令。</p>
+        </div>
+        <div class="step-visual">
+          <div class="add-friend-box">
+            <img src="assets/line-add-friend-qr.png" alt="社區秘書 LINE 官方帳號加入好友 QR Code">
+            <div class="afb-info">
+              <p style="margin:0;font-size:.85rem;color:var(--ink-soft);line-height:1.6;">用手機 LINE 掃描左邊的 QR Code，或直接點下方按鈕，會自動開啟 LINE App 跳到加好友畫面（已經是好友的話會直接開啟對話）。</p>
+              <a class="line-add-btn" href="https://line.me/R/ti/p/@940npvic" target="_blank" rel="noopener">💬 加入好友／開啟社區秘書</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" style="border-left-color:var(--line);">
+        <div class="step-num" style="background:var(--ink-soft);">2</div>
+        <div>
+          <h3>點一下聊天室下方的「圖文選單」</h3>
+          <p>加好友後，聊天室最下方會常駐一張圖片（LINE 官方名稱叫「rich menu／圖文選單」），點一下就會展開功能選單，不需要手動輸入任何文字。</p>
+        </div>
+        <div class="step-visual">
+          <div class="phone">
+            <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+            <div class="phone-body">
+              <div class="richmenu-shot">
+                <img src="assets/richmenu.png" alt="社區秘書 LINE 機器人的圖文選單（rich menu），畫面顯示「社區秘書」與「點我開啟功能選單」">
+              </div>
+            </div>
+          </div>
+          <div class="richmenu-callout"><span class="bounce">👆</span>這張就是 rich menu，點一下展開選單</div>
+        </div>
+      </div>
+
+    </div>
+    <p class="sub" style="margin:0;">選單展開後，接下來每種身份要點的按鈕不一樣，請往下依你的身份繼續。</p>
+  </section>
+
+  <!-- ============ 一般住戶（藍） ============ -->
+  <div class="track-band resident" id="resident">
+    <span class="icon">🏠</span>
+    <div>
+      <h2>一般住戶：不用登記，直接就能用</h2>
+      <p>一般住戶不需要另外開通、也不會有審核卡片，選單展開後最常用的就是「聯絡委員」跟「規約辦法」這兩個功能，加好友之後馬上就能用。</p>
+    </div>
+  </div>
+
+  <div class="step-list">
+    <div class="step resident">
+      <div class="step-num resident">3</div>
+      <div>
+        <h3>直接點「💬 委員」聯絡委員，或「⚖️ 規約辦法」查規約</h3>
+        <p>選單卡片上這兩顆按鈕誰都能按，不需要先登記：「委員」是把問題廣播給全部已生效委員，有人回覆會直接轉達給你；「規約辦法」是查詢社區規約或各項管理辦法內容，直接打問題就好。下面「登廠」「登委」是另外兩種身份要用的登記按鈕，一般住戶不用理會。</p>
+      </div>
+      <div class="step-visual">
+        <div class="phone">
+          <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+          <div class="phone-body">
+            <div class="bubble-row">
+              <div style="width:100%;">
+                <p class="bubble-name">社區秘書</p>
+                <div class="flex-card">
+                  <div class="flex-head">
+                    <div class="t1">👩‍💼 社區秘書 指令手冊</div>
+                    <div class="t2">大部分功能限已登記生效的委員使用</div>
+                  </div>
+                  <div class="flex-body">
+                    <div class="flex-label">請教委員</div>
+                    <div class="flex-desc">把問題廣播給全部已生效委員</div>
+                    <div class="flex-btn-row">
+                      <div class="flex-btn highlight">💬 委員<span class="point-badge">住戶常用</span></div>
+                    </div>
+                    <div class="flex-label" style="margin-top:.3rem;">規約／辦法問答</div>
+                    <div class="flex-desc">查詢社區規約或各項管理辦法的內容</div>
+                    <div class="flex-btn-row">
+                      <div class="flex-btn highlight">⚖️ 規約辦法<span class="point-badge">住戶常用</span></div>
+                    </div>
+                    <div class="flex-label" style="margin-top:.3rem;">登記廠商／委員身份</div>
+                    <div class="flex-desc">登記後等審核通過即可解鎖其餘功能</div>
+                    <div class="flex-btn-row">
+                      <div class="flex-btn dim">👷 登廠</div>
+                      <div class="flex-btn dim">👤 登委</div>
+                    </div>
+                    <hr class="flex-hr">
+                    <div class="flex-foot">其餘功能限已登記生效的委員使用，一般住戶不需要登記。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-visual" style="grid-column:2;">
+        <p class="step-note" style="color:var(--jia);background:var(--jia-bg);">✅ 一般住戶到這步就完成了，不用往下看委員／廠商的登記流程。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 社區經理／委員（橘） ============ -->
+  <div class="track-band committee" id="committee">
+    <span class="icon">🗂️</span>
+    <div>
+      <h2>社區經理／委員：登記身份，解鎖管理功能</h2>
+      <p>除了住戶就能用的「聯絡委員」「規約辦法」，社區經理與管委會委員還要多登記一次身份，經委員審核通過後，才能使用查任務、產公告、查財報等管理功能。</p>
+    </div>
+  </div>
+
+  <div class="step-list">
+
+    <div class="step committee">
+      <div class="step-num committee">3</div>
+      <div>
+        <h3>選單展開後，點選「登委」</h3>
+        <p>第一次使用、還沒有委員身份時，卡片下方只會看到「規約辦法」「登廠」「登委」這幾個公開功能，其餘管理功能要登記委員身份後才會解鎖，這裡點「👤 登委」。</p>
+      </div>
+      <div class="step-visual">
+        <div class="phone">
+          <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+          <div class="phone-body">
+            <div class="bubble-row">
+              <div style="width:100%;">
+                <p class="bubble-name">社區秘書</p>
+                <div class="flex-card">
+                  <div class="flex-head">
+                    <div class="t1">👩‍💼 社區秘書 指令手冊</div>
+                    <div class="t2">大部分功能限已登記生效的委員使用</div>
+                  </div>
+                  <div class="flex-body">
+                    <div class="flex-label">請教委員</div>
+                    <div class="flex-desc">把問題廣播給全部已生效委員</div>
+                    <div class="flex-btn-row"><div class="flex-btn dim">💬 委員</div></div>
+                    <div class="flex-label" style="margin-top:.3rem;">規約／辦法問答</div>
+                    <div class="flex-desc">查詢社區規約或各項管理辦法的內容</div>
+                    <div class="flex-btn-row"><div class="flex-btn dim">⚖️ 規約辦法</div></div>
+                    <div class="flex-label" style="margin-top:.3rem;">登記廠商／委員身份</div>
+                    <div class="flex-desc">登記後等審核通過即可解鎖其餘功能</div>
+                    <div class="flex-btn-row">
+                      <div class="flex-btn dim">👷 登廠</div>
+                      <div class="flex-btn highlight">👤 登委<span class="point-badge">點這裡</span></div>
+                    </div>
+                    <hr class="flex-hr">
+                    <div class="flex-foot">其餘功能限已登記生效的委員使用，先按「登委」登記。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step committee">
+      <div class="step-num committee">4</div>
+      <div>
+        <h3>畫面跳出登記表單，輸入身份後送出</h3>
+        <p>點下「登委」會另外開啟一個登記畫面，標題是「登記委員」。在輸入框裡打上你的身份稱呼，例如「社區經理」，再按下方的「送出」即可，不需要填其他資料。</p>
+      </div>
+      <div class="step-visual">
+        <div class="liff-mock">
+          <div class="liff-mock-inner">
+            <div class="liff-mock-top"><h4>登記委員</h4><span>🚪</span></div>
+            <p class="liff-mock-hint">登記委員身份，會先在「委員待審核」清單開一張待審卡片，經審核通過後才生效。</p>
+            <div class="liff-mock-textarea typed">社區經理</div>
+            <div class="liff-mock-btn">送出</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step committee">
+      <div class="step-num committee">5</div>
+      <div>
+        <h3>送出後，會先收到一則已收到登記的回覆</h3>
+        <p>表單畫面會顯示「已送出」，這個視窗可以直接關閉；回到 LINE 對話，機器人會馬上回覆一則訊息，代表登記已經送出，正在等委員確認。</p>
+      </div>
+      <div class="step-visual">
+        <div class="liff-mock" style="margin-bottom:1rem;">
+          <div class="liff-mock-inner">
+            <div class="liff-mock-status">已送出，處理結果會顯示在 LINE 對話裡，這個視窗可以關閉了。</div>
+          </div>
+        </div>
+        <div class="phone">
+          <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+          <div class="phone-body">
+            <div class="bubble-row">
+              <div>
+                <p class="bubble-name">社區秘書</p>
+                <div class="bubble">✅ 已收到委員登記：社區經理，已建立待審核卡片，等管委會確認身份後就會生效，生效前沒辦法幫忙轉達詢問。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step committee">
+      <div class="step-num committee">6</div>
+      <div>
+        <h3>等候審核，由委員開通權限</h3>
+        <p>這一步不是機器人自動放行，而是由既有委員在管委會後台把這張待審核卡片確認、移到已生效清單，<strong>由委員開通權限</strong>。審核通過後，機器人會再傳一則通知，之後就能直接在與機器人的個人對話裡使用「!選單」或各項指令，包含查任務、產公告、查財報等管理功能，不用重新加好友或再登記一次。</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ 廠商（金） ============ -->
+  <div class="track-band vendor" id="vendor">
+    <span class="icon">🔧</span>
+    <div>
+      <h2>廠商：登記身份，方便委員主動聯繫</h2>
+      <p>廠商登記跟委員是同一套流程，只是選單上要按的按鈕不同。廠商生效後不用自己操作任何指令——委員用「聯繫廠商」功能問問題時，廠商只要在對話裡正常回覆文字或圖片，機器人就會自動轉達給發問的委員，往來記錄都會留在同一張卡片裡。</p>
+    </div>
+  </div>
+
+  <div class="step-list">
+
+    <div class="step vendor">
+      <div class="step-num vendor">3</div>
+      <div>
+        <h3>選單展開後，點選「登廠」</h3>
+        <p>跟委員登記在同一張卡片上，這裡改點「👷 登廠」。</p>
+      </div>
+      <div class="step-visual">
+        <div class="phone">
+          <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+          <div class="phone-body">
+            <div class="bubble-row">
+              <div style="width:100%;">
+                <p class="bubble-name">社區秘書</p>
+                <div class="flex-card">
+                  <div class="flex-head">
+                    <div class="t1">👩‍💼 社區秘書 指令手冊</div>
+                    <div class="t2">大部分功能限已登記生效的委員使用</div>
+                  </div>
+                  <div class="flex-body">
+                    <div class="flex-label">請教委員</div>
+                    <div class="flex-desc">把問題廣播給全部已生效委員</div>
+                    <div class="flex-btn-row"><div class="flex-btn dim">💬 委員</div></div>
+                    <div class="flex-label" style="margin-top:.3rem;">規約／辦法問答</div>
+                    <div class="flex-desc">查詢社區規約或各項管理辦法的內容</div>
+                    <div class="flex-btn-row"><div class="flex-btn dim">⚖️ 規約辦法</div></div>
+                    <div class="flex-label" style="margin-top:.3rem;">登記廠商／委員身份</div>
+                    <div class="flex-desc">登記後等審核通過即可解鎖其餘功能</div>
+                    <div class="flex-btn-row">
+                      <div class="flex-btn highlight">👷 登廠<span class="point-badge">點這裡</span></div>
+                      <div class="flex-btn dim">👤 登委</div>
+                    </div>
+                    <hr class="flex-hr">
+                    <div class="flex-foot">其餘功能限已登記生效的委員使用，先按「登委」登記。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step vendor">
+      <div class="step-num vendor">4</div>
+      <div>
+        <h3>畫面跳出登記表單，輸入廠商名稱後送出</h3>
+        <p>點下「登廠」會開啟登記畫面，標題是「登記廠商」。輸入框裡打上廠商名稱，例如「永大電梯」，再按「送出」即可。</p>
+      </div>
+      <div class="step-visual">
+        <div class="liff-mock">
+          <div class="liff-mock-inner">
+            <div class="liff-mock-top"><h4>登記廠商</h4><span>🚪</span></div>
+            <p class="liff-mock-hint">登記廠商身份，會先在「廠商待審核」清單開一張待審卡片，經委員審核通過後才生效。</p>
+            <div class="liff-mock-textarea typed">永大電梯</div>
+            <div class="liff-mock-btn">送出</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step vendor">
+      <div class="step-num vendor">5</div>
+      <div>
+        <h3>送出後，會先收到一則已收到登記的回覆</h3>
+        <p>跟委員登記一樣，表單畫面顯示「已送出」就可以關閉視窗；回到 LINE 對話會看到一則系統回覆，代表登記已經送出，正在等委員確認。</p>
+      </div>
+      <div class="step-visual">
+        <div class="liff-mock" style="margin-bottom:1rem;">
+          <div class="liff-mock-inner">
+            <div class="liff-mock-status">已送出，處理結果會顯示在 LINE 對話裡，這個視窗可以關閉了。</div>
+          </div>
+        </div>
+        <div class="phone">
+          <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+          <div class="phone-body">
+            <div class="bubble-row">
+              <div>
+                <p class="bubble-name">社區秘書</p>
+                <div class="bubble">✅ 已收到廠商登記：永大電梯，已建立待審核卡片，等管委會確認身份後就會生效，生效前沒辦法幫忙轉達詢問。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step vendor">
+      <div class="step-num vendor">6</div>
+      <div>
+        <h3>等候審核，由委員開通權限</h3>
+        <p>同樣由委員把待審核卡片確認、移到「廠商已生效」清單，<strong>由委員開通權限</strong>。生效後廠商不需要自己再做任何操作——之後委員透過「聯繫廠商」主動發訊息詢問時，只要在對話裡正常回覆文字或圖片就好，機器人會自動把回覆轉達給發問的委員。</p>
+      </div>
+    </div>
+
+  </div>
+
+  <section class="section">
+    <h2>常見問題</h2>
+    <p class="sub">開通過程如果卡住，先看看是不是下面這幾種情況</p>
+    <div class="card-grid">
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:.95rem;margin:0 0 .3rem;">送出後等多久才會開通？</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;line-height:1.6;">委員／廠商登記都是由既有委員人工確認身份，沒有固定時間，等候較久可以直接在群組或私訊詢問管委會。一般住戶不需要審核，不受這條影響。</p>
+      </div>
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:.95rem;margin:0 0 .3rem;">表單頁一直卡在「載入中」？</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;line-height:1.6;">請確認是從 LINE App 內點按鈕開啟這個表單（而不是外部瀏覽器直接貼網址），並確認手機有連上網路。</p>
+      </div>
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:.95rem;margin:0 0 .3rem;">已經是委員／廠商了還需要登記嗎？</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;line-height:1.6;">每一支手機門號（LINE 帳號）都要各自登記一次，才會被記到系統裡，換手機或換帳號也要重新登記。</p>
+      </div>
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:.95rem;margin:0 0 .3rem;">一般住戶可以順便登記委員嗎？</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;line-height:1.6;">選單上「登委」按鈕誰都看得到，但登記後一樣要委員審核通過才會生效，不是自己登記就能取得委員權限。</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <h4>富來大郡社區管理委員會</h4>
+      <p>新竹縣湖口鄉德和路10巷86號</p>
+    </div>
+    <div>
+      <h4>辦公時間</h4>
+      <p>週一至週五 08:30–17:30</p>
+    </div>
+    <div>
+      <h4>聯絡方式</h4>
+      <ul>
+        <li>電話：03-5990857</li>
+      </ul>
+    </div>
+    <div class="copyright">© 2026 富來大郡社區管理委員會</div>
+  </div>
+</footer>
+<script src="assets/nav.js"></script>
+</body>
+</html>
