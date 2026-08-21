@@ -79,17 +79,25 @@ a { color: var(--accent); }
   color: var(--header-ink);
   text-decoration: none;
   font-family: var(--font-display);
+  /* 導覽列項目變多之後（現在 8 個）在中等寬度下會換成兩行，這時 .site-header-inner 這個
+     flex row 空間變擠，.brand 預設 flex-shrink:1 會被跟著壓縮，壓到比文字本身還窄時，
+     瀏覽器就會在文字中間硬斷行（「富來大郡社」／「區」分兩行）。固定不讓它被壓縮，
+     寬度不夠時應該是右邊的 .site-nav 自己換行（本來就有 flex-wrap: wrap），不是左邊
+     的社區名稱斷字 */
+  flex-shrink: 0;
 }
 .brand .brand-mark {
   font-weight: 800;
   font-size: 1.1rem;
   letter-spacing: .01em;
+  white-space: nowrap;
 }
 .brand .brand-sub {
   font-family: var(--font-mono);
   font-size: .68rem;
   color: #f0d9c4;
   letter-spacing: .08em;
+  white-space: nowrap;
 }
 .nav-toggle {
   display: none;
