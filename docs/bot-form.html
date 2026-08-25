@@ -175,6 +175,29 @@
     height: 1.1rem;
     accent-color: var(--accent);
   }
+  /* 2026-08-25 新增：!委員 表單專用的「戶號／身份（選填）」單行輸入框，只有帶
+     showIdentityField=1 的表單才會顯示（見 JS 那段 showIdentityField 的說明），預設用
+     inline style="display:none" 藏起來，跟 file-row／repo-picker 同一套做法 */
+  .identity-row label {
+    display: block;
+    font-size: .85rem;
+    color: var(--ink-soft);
+    margin-bottom: .3rem;
+  }
+  .identity-row input[type="text"] {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .6rem .75rem;
+    font-size: .95rem;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .identity-row input[type="text"]:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
 </style>
 </head>
 <body>
@@ -188,6 +211,10 @@
   <div class="repo-picker" id="repo-picker" style="display:none;">
     <label><input type="checkbox" id="repo-linebot" value="linebot" checked disabled> Linebot（機器人程式碼）</label>
     <label><input type="checkbox" id="repo-fulaidajun" value="fulaidajun" disabled> FulaiDajun（前台網站）</label>
+  </div>
+  <div class="identity-row" id="identity-row" style="display:none;">
+    <label for="identity-input">戶號／身份（選填，方便委員辨識是誰）</label>
+    <input type="text" id="identity-input" maxlength="60" placeholder="例如：A棟1204、王小姐" disabled>
   </div>
   <textarea id="input" placeholder="請稍候，載入中…" disabled></textarea>
   <div class="file-row" id="file-row" style="display:none;">
@@ -248,6 +275,10 @@
   // repository」的複選欄位，見 community-line-bot 那邊 dashboardFormButton 的說明，
   // 跟 allowFile 同一種「query string 帶開關」的做法
   var showRepoPicker = params.get('showRepoPicker') === '1';
+  // showIdentityField（2026-08-25 新增，!委員 專用）：這個表單要不要顯示「戶號／身份
+  // （選填）」單行輸入框，見 community-line-bot 那邊 dashboardFormButton 的說明，一樣是
+  // 同一種「query string 帶開關」的做法
+  var showIdentityField = params.get('showIdentityField') === '1';
 
   if (cmdPrefix) {
     try {
@@ -256,7 +287,7 @@
         JSON.stringify({
           cmdPrefix: cmdPrefix, title: title, placeholder: placeholder, hint: hint,
           groupId: groupId, allowFile: allowFile, requesterId: requesterId,
-          showRepoPicker: showRepoPicker,
+          showRepoPicker: showRepoPicker, showIdentityField: showIdentityField,
         })
       );
     } catch (e) {
@@ -274,6 +305,7 @@
         allowFile = !!saved.allowFile;
         requesterId = saved.requesterId || '';
         showRepoPicker = !!saved.showRepoPicker;
+        showIdentityField = !!saved.showIdentityField;
       }
     } catch (e) {
       // 存起來的資料壞掉或讀不到，就照舊走下面「缺少參數」那個分支，不用特別處理
@@ -294,6 +326,8 @@
   var fileListEl = document.getElementById('file-list');
   var repoPickerEl = document.getElementById('repo-picker');
   var repoCheckboxes = [document.getElementById('repo-linebot'), document.getElementById('repo-fulaidajun')];
+  var identityRowEl = document.getElementById('identity-row');
+  var identityInputEl = document.getElementById('identity-input');
 
   // 跟 community-line-bot 的 TRELLO_MAX_ATTACHMENT_BYTES／LIFF_FORM_MAX_FILES 用同一組上限
   // （單檔大小是 Trello 附件本身的硬性大小限制，張數上限見後端註解），client 端先擋掉超過的
@@ -310,6 +344,7 @@
   if (hint) hintEl.textContent = hint;
   if (allowFile) fileRowEl.style.display = '';
   if (showRepoPicker) repoPickerEl.style.display = '';
+  if (showIdentityField) identityRowEl.style.display = '';
 
   function showStatus(text, kind) {
     statusEl.textContent = text;
@@ -322,6 +357,7 @@
     submitEl.textContent = busy ? '送出中…' : '送出';
     if (allowFile) fileInputEl.disabled = busy;
     if (showRepoPicker) repoCheckboxes.forEach(function (cb) { cb.disabled = busy; });
+    if (showIdentityField) identityInputEl.disabled = busy;
   }
 
   function clearFileSelection() {
@@ -399,6 +435,7 @@
     submitEl.disabled = false;
     if (allowFile) fileInputEl.disabled = false;
     if (showRepoPicker) repoCheckboxes.forEach(function (cb) { cb.disabled = false; });
+    if (showIdentityField) identityInputEl.disabled = false;
     inputEl.focus();
     // 登入成功才顯示登出按鈕——如果不小心登入到錯的 LINE 帳號（例如誤用個人帳號而不是
     // 社區帳號），可以按這裡清掉登入狀態重新選帳號，不用整個關掉再重開
@@ -477,6 +514,7 @@
               groupId: groupId || undefined,
               requesterId: requesterId || undefined,
               repos: selectedRepos || undefined,
+              identity: showIdentityField && identityInputEl.value.trim() ? identityInputEl.value.trim() : undefined,
               files: fileInfos && fileInfos.length ? fileInfos : undefined,
             }),
           });
@@ -491,6 +529,7 @@
           showStatus('已送出，處理結果會顯示在 LINE 對話裡，這個視窗可以關閉了。', 'ok');
           inputEl.value = '';
           if (allowFile) clearFileSelection();
+          if (showIdentityField) identityInputEl.value = '';
           if (liff.isInClient && liff.isInClient()) {
             // 手機走 LINE 內建的 LIFF 瀏覽器，liff.closeWindow() 是官方提供、保證能關閉的方式
             setTimeout(function () { liff.closeWindow(); }, 1500);
