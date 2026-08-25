@@ -1,0 +1,143 @@
+name: LINE 改代碼請求
+
+# 由 community-line-bot Worker 收到「!改代碼」指令、勾選 FulaiDajun 後觸發（見
+# community-line-bot repo 的 src/index.js，handleCodeEditRequest／triggerGithubCodeRequest，
+# REPO_CONFIGS.fulaidajun 那組設定）。這支 workflow 只負責「改代碼＋開 PR」。
+#
+# 跟 Linebot repo 的同名 workflow 幾乎一模一樣（開分支/附件/Claude Code/開PR/回呼那幾步照抄），
+# 差異只有：① 這裡是靜態網站（docs/ 資料夾），沒有 package.json／npm install／npm test 這幾步；
+# ② 不需要另一支部署 workflow——這個 repo 是 GitHub Pages，設定成從 main 發布，PR merge 進
+# main 之後 GitHub 自己就會抓去發布，Worker 那邊的「核准並部署」按鈕實際上只做了「核准」
+# （merge），「部署」是 GitHub Pages 自動接手，不需要 Worker 或這裡再多做什麼
+#
+# Worker 觸發之前已經先做了兩件事（見 community-line-bot repo index.js 該節開頭的說明）：
+# 1. 用長效期 PAT 開好 code-request/<requestId> 這個分支（從 main 分出來；這把 PAT
+#    2026-08-25 建立時就同時勾選了 Linebot 和 FulaiDajun 兩個 repository）
+# 2. 如果這次請求有附件，已經把檔案 commit 進這個分支的 .claude-inbox/<requestId>/ 底下
+# 這支 workflow 接手之後，完全改用 Actions 自動核發、跑完即失效的臨時 token（見下面
+# permissions），不使用那把長效期 PAT——降低外洩時的影響範圍。
+
+on:
+  repository_dispatch:
+    types: [line-code-request]
+
+permissions:
+  contents: write
+  pull-requests: write
+  # claude-code-action 內部要透過 OIDC 換發它自己用的憑證，沒開這個權限會直接失敗
+  # 「Could not fetch an OIDC token」，連 prompt 都還沒開始跑（Linebot repo 那邊實測過）
+  id-token: write
+
+jobs:
+  edit-and-open-pr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout 這次請求的分支
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.branch }}
+          fetch-depth: 0
+
+      - name: 跑 Claude Code 改代碼
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --allowedTools "Read,Edit,Grep,Glob"
+          prompt: |
+            使用者透過 LINE 提出以下改代碼需求，請直接修改這個 repo 的原始碼來完成它。
+            這是「富來大郡」社區的前台網站，靜態頁面全部在 docs/ 資料夾底下（index.html／
+            announcements.html／facilities.html 等），是走 GitHub Pages 從這個 repo 的 main
+            分支直接發布，沒有任何建置流程，改完 docs/ 底下的檔案存檔即可，不用跑任何指令。
+            不要建立新分支、不要 commit、不要 push、不要開 PR——這幾步交給後面的步驟處理，
+            你只需要把檔案改對、改完整。
+
+            需求內容：
+            ${{ github.event.client_payload.instruction }}
+
+            提出需求的人：${{ github.event.client_payload.requester }}
+
+            如果 `.claude-inbox/${{ github.event.client_payload.requestId }}/` 這個資料夾
+            存在，裡面是這次需求附的參考資料（截圖、PDF 之類），先看過內容再動手；分析完之後
+            把這個資料夾整個刪掉，不要讓暫存的參考資料混進最終的修改內容。
+
+            最後一步：把這次改動的摘要（改了什麼、為什麼這樣改、有沒有需要注意的風險，繁體
+            中文，100 字以內）寫進一個新檔案 `.claude-summary.txt`（repo 根目錄），檔案內容
+            只放這段摘要文字，不要有其他東西。這個檔案不會進最終的 PR，是給下一個步驟讀取用
+            的暫存檔。
+
+      - name: Commit、push、開 PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.event.client_payload.branch }}
+        run: |
+          SUMMARY=$(cat .claude-summary.txt 2>/dev/null || echo "改完了，但沒抓到摘要文字，麻煩直接看 PR 內容確認改了什麼。")
+          rm -f .claude-summary.txt
+
+          git config user.name "line-code-bot"
+          git config user.email "actions@users.noreply.github.com"
+          # 2026-08-25 Linebot repo 那邊實測過：跑完「跑 Claude Code 改代碼」那步之後，
+          # actions/checkout 原本設好的 git 憑證會失效（推測是 claude-code-action 執行過程中
+          # 動過 git 認證設定），這裡 push 之前不能只依賴前面步驟留下的憑證狀態，自己明確重設
+          # 一次帶 token 的 remote URL，才不會 push 到一半才發現認證失敗
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "summary<<EOF_SUMMARY"
+              echo "$SUMMARY"
+              echo "EOF_SUMMARY"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git commit -m "改代碼：${{ github.event.client_payload.instruction }}"
+          git push origin "HEAD:$BRANCH"
+
+          PR_URL=$(gh pr create \
+            --title "改代碼：${{ github.event.client_payload.instruction }}" \
+            --body "由 LINE 觸發，需求人：${{ github.event.client_payload.requester }}（單號 ${{ github.event.client_payload.requestId }}）
+
+          $SUMMARY" \
+            --base main \
+            --head "$BRANCH")
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+          echo "pr_number=${PR_URL##*/}" >> "$GITHUB_OUTPUT"
+          {
+            echo "summary<<EOF_SUMMARY"
+            echo "$SUMMARY"
+            echo "EOF_SUMMARY"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: 通知 Worker
+        if: always()
+        env:
+          CALLBACK_URL: https://community-line-bot.fulaidajuncommunity.workers.dev/internal/code-edit-callback
+          CALLBACK_SECRET: ${{ secrets.PR_CALLBACK_SECRET }}
+          CHANGED: ${{ steps.pr.outputs.changed }}
+          SUMMARY: ${{ steps.pr.outputs.summary }}
+          PR_URL: ${{ steps.pr.outputs.pr_url }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+        run: |
+          if [ "$CHANGED" = "true" ]; then
+            TEXT="🤖 [FulaiDajun 前台網站] 改代碼完成
+
+          $SUMMARY
+
+          PR：$PR_URL"
+            curl -sf -X POST "$CALLBACK_URL" \
+              -H "Content-Type: application/json" \
+              -H "X-Callback-Secret: $CALLBACK_SECRET" \
+              -d "$(jq -n --arg text "$TEXT" --argjson prNumber "$PR_NUMBER" '{text:$text, pr:{number:$prNumber, repo:"fulaidajun"}}')"
+          else
+            curl -sf -X POST "$CALLBACK_URL" \
+              -H "Content-Type: application/json" \
+              -H "X-Callback-Secret: $CALLBACK_SECRET" \
+              -d '{"text":"🤖 [FulaiDajun 前台網站] 看過需求了，但沒有偵測到任何程式碼改動，可能是指令不夠明確、或已經是現況了。"}'
+          fi

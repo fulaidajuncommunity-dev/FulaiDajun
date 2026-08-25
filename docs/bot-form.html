@@ -156,6 +156,25 @@
     overflow-wrap: break-word;
     display: none;
   }
+  /* 2026-08-25 新增：!改代碼 表單專用的「要改哪個 repository」複選欄位，只有帶
+     showRepoPicker=1 的表單才會顯示（見 JS 那段 showRepoPicker 的說明），預設用 inline
+     style="display:none" 藏起來，跟 file-row 同一套做法 */
+  .repo-picker {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    font-size: .9rem;
+  }
+  .repo-picker label {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .repo-picker input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--accent);
+  }
 </style>
 </head>
 <body>
@@ -166,6 +185,10 @@
   </div>
   <p class="hint" id="form-hint"></p>
   <div id="status" class="status"></div>
+  <div class="repo-picker" id="repo-picker" style="display:none;">
+    <label><input type="checkbox" id="repo-linebot" value="linebot" checked disabled> Linebot（機器人程式碼）</label>
+    <label><input type="checkbox" id="repo-fulaidajun" value="fulaidajun" disabled> FulaiDajun（前台網站）</label>
+  </div>
   <textarea id="input" placeholder="請稍候，載入中…" disabled></textarea>
   <div class="file-row" id="file-row" style="display:none;">
     <input type="file" id="file-input" multiple disabled>
@@ -221,6 +244,10 @@
   // idToken 驗證出來的身份是不是同一個人，只有發起人自己能真的送出表單。這裡單純是原樣
   // 轉發，不用信任這個值本身——後端真正信任的是 idToken，見 handleLiffCommand 的說明
   var requesterId = params.get('requesterId') || '';
+  // showRepoPicker（2026-08-25 新增，!改代碼 專用）：這個表單要不要顯示「要改哪個
+  // repository」的複選欄位，見 community-line-bot 那邊 dashboardFormButton 的說明，
+  // 跟 allowFile 同一種「query string 帶開關」的做法
+  var showRepoPicker = params.get('showRepoPicker') === '1';
 
   if (cmdPrefix) {
     try {
@@ -229,6 +256,7 @@
         JSON.stringify({
           cmdPrefix: cmdPrefix, title: title, placeholder: placeholder, hint: hint,
           groupId: groupId, allowFile: allowFile, requesterId: requesterId,
+          showRepoPicker: showRepoPicker,
         })
       );
     } catch (e) {
@@ -245,6 +273,7 @@
         groupId = saved.groupId || '';
         allowFile = !!saved.allowFile;
         requesterId = saved.requesterId || '';
+        showRepoPicker = !!saved.showRepoPicker;
       }
     } catch (e) {
       // 存起來的資料壞掉或讀不到，就照舊走下面「缺少參數」那個分支，不用特別處理
@@ -263,6 +292,8 @@
   var fileInputEl = document.getElementById('file-input');
   var fileClearEl = document.getElementById('file-clear');
   var fileListEl = document.getElementById('file-list');
+  var repoPickerEl = document.getElementById('repo-picker');
+  var repoCheckboxes = [document.getElementById('repo-linebot'), document.getElementById('repo-fulaidajun')];
 
   // 跟 community-line-bot 的 TRELLO_MAX_ATTACHMENT_BYTES／LIFF_FORM_MAX_FILES 用同一組上限
   // （單檔大小是 Trello 附件本身的硬性大小限制，張數上限見後端註解），client 端先擋掉超過的
@@ -278,6 +309,7 @@
   // element，見下面）就不顯示這一行
   if (hint) hintEl.textContent = hint;
   if (allowFile) fileRowEl.style.display = '';
+  if (showRepoPicker) repoPickerEl.style.display = '';
 
   function showStatus(text, kind) {
     statusEl.textContent = text;
@@ -289,6 +321,7 @@
     submitEl.disabled = busy;
     submitEl.textContent = busy ? '送出中…' : '送出';
     if (allowFile) fileInputEl.disabled = busy;
+    if (showRepoPicker) repoCheckboxes.forEach(function (cb) { cb.disabled = busy; });
   }
 
   function clearFileSelection() {
@@ -365,6 +398,7 @@
     inputEl.disabled = false;
     submitEl.disabled = false;
     if (allowFile) fileInputEl.disabled = false;
+    if (showRepoPicker) repoCheckboxes.forEach(function (cb) { cb.disabled = false; });
     inputEl.focus();
     // 登入成功才顯示登出按鈕——如果不小心登入到錯的 LINE 帳號（例如誤用個人帳號而不是
     // 社區帳號），可以按這裡清掉登入狀態重新選帳號，不用整個關掉再重開
@@ -387,6 +421,16 @@
     var content = inputEl.value.trim();
     if (!content) {
       showStatus('請先輸入內容再送出。', 'warn');
+      return;
+    }
+
+    // 至少要勾一個要改的 repository，沒勾就先擋下來，不用等送到後端才發現失敗
+    // （跟下面 sendCommand 裡「至少要選一個檔案/內容」那類 client 端先擋的原則一致）
+    var selectedRepos = showRepoPicker
+      ? repoCheckboxes.filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.value; })
+      : null;
+    if (showRepoPicker && !selectedRepos.length) {
+      showStatus('請至少勾選一個要修改的 repository。', 'warn');
       return;
     }
 
@@ -432,6 +476,7 @@
               content: content,
               groupId: groupId || undefined,
               requesterId: requesterId || undefined,
+              repos: selectedRepos || undefined,
               files: fileInfos && fileInfos.length ? fileInfos : undefined,
             }),
           });
