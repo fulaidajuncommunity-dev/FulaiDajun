@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>社區公告欄・富來大郡社區</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .notice-list { display: flex; flex-direction: column; gap: 1rem; }
+  .notice-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    box-shadow: var(--shadow); padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: .5rem;
+  }
+  .notice-head { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+  .notice-date { font-family: var(--font-mono); font-size: .78rem; color: var(--ink-soft); }
+  .notice-card h3 { font-family: var(--font-display); font-size: 1.05rem; margin: 0; }
+  .notice-card p { margin: 0; font-size: .87rem; color: var(--ink-soft); line-height: 1.65; }
+  .notice-card ul { margin: 0; padding-left: 1.4em; font-size: .87rem; color: var(--ink-soft); line-height: 1.65; }
+  .notice-card li { margin-bottom: .25rem; }
+  .notice-status { color: var(--ink-soft); font-size: .9rem; text-align: center; padding: 2rem 0; }
+  .notice-doc { margin: 0; font-size: .72rem; color: var(--ink-soft); font-family: var(--font-mono); }
+</style>
+</head>
+<body data-page="announcements">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">富來大郡社區</span>
+      <span class="brand-sub">FU LAI DA JUN</span>
+    </a>
+    <button class="nav-toggle" aria-label="開啟選單" aria-expanded="false">☰</button>
+    <nav class="site-nav" aria-label="主導覽">
+      <a href="index.html" data-page="home">首頁</a>
+      <a href="announcements.html" data-page="announcements">社區公告欄</a>
+      <a href="about.html" data-page="about">關於社區／管委會</a>
+      <a href="rules-fees.html" data-page="rules-fees">管理費用</a>
+      <a href="facilities.html" data-page="facilities">設施與服務</a>
+      <a href="staff.html" data-page="staff">社區服務人員</a>
+      <a href="bot-guide.html" data-page="bot-guide">機器人開通教學</a>
+      <a href="cleaning.html" data-page="cleaning">清潔排班表</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">最新消息</p>
+    <h1>社區公告欄</h1>
+    <p class="lede">管理委員會發布的公告、活動通知與維修資訊，將公布於此。</p>
+  </header>
+
+  <div class="notice-list" id="notice-list">
+    <p class="notice-status" id="notice-status">公告載入中…</p>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <h4>富來大郡社區管理委員會</h4>
+      <p>新竹縣湖口鄉德和路10巷80~88號</p>
+    </div>
+    <div>
+      <h4>辦公時間</h4>
+      <p>週一至週五 08:30–17:30</p>
+    </div>
+    <div>
+      <h4>聯絡方式</h4>
+      <ul>
+        <li>電話：03-5990857</li>
+      </ul>
+    </div>
+    <div class="copyright">© 2026 富來大郡社區管理委員會</div>
+  </div>
+</footer>
+<script src="assets/nav.js"></script>
+<script>
+// 2026-08-17 改成動態抓取，取代原本寫死在這個檔案裡的靜態公告卡片——資料來源是
+// community-line-bot 這支 Worker 新增的 GET /api/announcements（見那支 repo 的
+// handleAnnouncementsApi 說明），只回「目前生效中」（7 天效期內、還沒過期）的公告，
+// 跟 LINE 群組裡「!列公告」看到的是同一批資料，只是這裡只顯示文字內容，不含公告圖片本身
+// （圖片沒有長期公開網址可以連，見那支 Worker 的說明）。
+(function () {
+  var API_URL = 'https://community-line-bot.fulaidajuncommunity.workers.dev/api/announcements';
+  var listEl = document.getElementById('notice-list');
+  var statusEl = document.getElementById('notice-status');
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  // sections 是後端存的結構化內容，每一項是 { type: 'paragraph', text } 或
+  // { type: 'list', items: [...] }，跟 LINE 那邊 !產公告 產圖用的是同一份資料
+  function renderSectionsHtml(sections) {
+    return (sections || [])
+      .map(function (s) {
+        if (s.type === 'list') {
+          return '<ul>' + (s.items || []).map(function (item) { return '<li>' + escapeHtml(item) + '</li>'; }).join('') + '</ul>';
+        }
+        return '<p>' + escapeHtml(s.text) + '</p>';
+      })
+      .join('');
+  }
+
+  function renderAnnouncement(a) {
+    var article = document.createElement('article');
+    article.className = 'notice-card';
+    article.innerHTML =
+      '<div class="notice-head"><span class="tag-pill notice">公告</span><span class="notice-date">' + escapeHtml(a.dateText) + '</span></div>' +
+      '<h3>' + escapeHtml(a.subject) + '</h3>' +
+      renderSectionsHtml(a.sections) +
+      (a.closingNote ? '<p>' + escapeHtml(a.closingNote) + '</p>' : '') +
+      (a.docNumber ? '<p class="notice-doc">文號：' + escapeHtml(a.docNumber) + '</p>' : '');
+    return article;
+  }
+
+  fetch(API_URL)
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      var announcements = (data && data.announcements) || [];
+      if (!announcements.length) {
+        statusEl.textContent = '目前沒有生效中的公告。';
+        return;
+      }
+      listEl.innerHTML = '';
+      announcements.forEach(function (a) { listEl.appendChild(renderAnnouncement(a)); });
+    })
+    .catch(function (err) {
+      console.error('載入公告失敗', err);
+      statusEl.textContent = '公告暫時無法載入，請稍後再試一次。';
+    });
+})();
+</script>
+</body>
+</html>

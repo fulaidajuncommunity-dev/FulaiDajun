@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>關於社區／管委會・富來大郡社區</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  .committee-table { width: 100%; border-collapse: collapse; }
+  .committee-table th, .committee-table td {
+    border: 1px solid var(--line-soft); padding: .6rem .8rem; text-align: left; font-size: .87rem;
+  }
+  .committee-table thead th { background: var(--header-bg); color: var(--header-ink); font-weight: 600; }
+  .committee-table tbody td.role { font-weight: 600; color: var(--ink); }
+  .committee-table tbody td.name { color: var(--ink-soft); }
+
+  .ask-box {
+    background: var(--accent-soft); border: 1px solid var(--line); border-radius: 16px;
+    padding: 1.1rem 1.3rem; display: flex; flex-direction: column; gap: .7rem;
+  }
+  .ask-box .ask-title { font-family: var(--font-display); font-weight: 700; font-size: .98rem; display: flex; align-items: center; gap: .4rem; }
+  .ask-box .ask-desc { margin: 0; font-size: .82rem; color: var(--ink-soft); line-height: 1.6; }
+  .ask-row { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .ask-row input[type="text"] {
+    flex: 1; min-width: 200px; padding: .65rem .9rem; border-radius: 10px;
+    border: 1px solid var(--line); font-family: inherit; font-size: .92rem;
+    background: var(--surface); color: var(--ink);
+  }
+  .ask-row input[type="text"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ask-btn {
+    font-family: inherit; font-size: .88rem; font-weight: 700; color: #fff;
+    background: var(--accent); border: none; border-radius: 999px; padding: .65rem 1.3rem;
+    cursor: pointer; white-space: nowrap;
+  }
+  .ask-btn:hover { filter: brightness(1.06); }
+  .ask-btn:disabled { opacity: .55; cursor: not-allowed; }
+  .ask-status-row { display: flex; justify-content: space-between; align-items: center; }
+  .ask-loading { display: none; align-items: center; gap: .4rem; font-size: .82rem; color: var(--ink-soft); }
+  .ask-loading.show { display: inline-flex; }
+  .ask-spin {
+    width: .8rem; height: .8rem; border-radius: 50%; border: 2px solid var(--line);
+    border-top-color: var(--accent); animation: ask-spin .7s linear infinite;
+  }
+  @keyframes ask-spin { to { transform: rotate(360deg); } }
+  .ask-counter { font-size: .72rem; color: var(--ink-soft); font-family: var(--font-mono); }
+  .ask-answer {
+    display: none; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: .9rem 1.1rem; font-size: .88rem; line-height: 1.75; color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .ask-answer.show { display: block; }
+  .ask-chip-row { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .ask-chip {
+    font-family: inherit; font-size: .78rem; color: var(--accent); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 999px; padding: .4rem .85rem; cursor: pointer;
+  }
+  .ask-chip:hover { background: var(--accent-soft); }
+</style>
+</head>
+<body data-page="about">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">富來大郡社區</span>
+      <span class="brand-sub">FU LAI DA JUN</span>
+    </a>
+    <button class="nav-toggle" aria-label="開啟選單" aria-expanded="false">☰</button>
+    <nav class="site-nav" aria-label="主導覽">
+      <a href="index.html" data-page="home">首頁</a>
+      <a href="announcements.html" data-page="announcements">社區公告欄</a>
+      <a href="about.html" data-page="about">關於社區／管委會</a>
+      <a href="rules-fees.html" data-page="rules-fees">管理費用</a>
+      <a href="facilities.html" data-page="facilities">設施與服務</a>
+      <a href="staff.html" data-page="staff">社區服務人員</a>
+      <a href="bot-guide.html" data-page="bot-guide">機器人開通教學</a>
+      <a href="cleaning.html" data-page="cleaning">清潔排班表</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">社區介紹</p>
+    <h1>關於社區／管委會</h1>
+    <p class="lede">認識富來大郡社區的環境與管理委員會組織，以及日常聯繫方式。</p>
+  </header>
+
+  <section class="section">
+    <h2>社區簡介</h2>
+    <p style="margin:0;font-size:.9rem;color:var(--ink-soft);line-height:1.75;">
+      富來大郡社區為住商混合型社區，由 A、B、C 三棟建築組成，共計 166 戶住宅單位（其中含 3 戶店面）。社區設有中庭花園、地下停車場與多項公共設施，
+      管理委員會秉持「安全、整潔、和諧」的理念，致力於提升住戶居住品質與社區公共事務的透明管理。
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>管理委員會組織</h2>
+    <p class="sub">現任第一屆管理委員會成員</p>
+    <div style="overflow-x:auto;">
+      <table class="committee-table">
+        <thead><tr><th>職稱</th><th>姓名</th><th>負責事務</th></tr></thead>
+        <tbody>
+          <tr><td class="role">主任委員</td><td class="name">吳OO</td><td class="name">綜理社區管理委員會會務</td></tr>
+          <tr><td class="role">副主任委員</td><td class="name">鄭OO</td><td class="name">協助主委處理會務、代理主委職務</td></tr>
+          <tr><td class="role">財務委員</td><td class="name">黃OO</td><td class="name">管理費收支審核、財務報表審閱</td></tr>
+          <tr><td class="role">監察委員</td><td class="name">湯OO</td><td class="name">監督財務與會務執行狀況</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub" style="margin:0;">社區經理、保全與清潔人員等服務團隊工作職掌，請見「<a href="staff.html">社區服務人員</a>」頁面。</p>
+  </section>
+
+  <section class="section">
+    <h2>社區規約與管理辦法</h2>
+    <p class="sub">住戶規約及各項管理辦法全文，開啟後可直接列印或另存為 PDF</p>
+
+    <div class="ask-box">
+      <div class="ask-title">🤖 規約問答小幫手</div>
+      <p class="ask-desc">有規約相關問題嗎？直接輸入問題，AI 會根據下方社區住戶規約與各項管理辦法內容搜尋回答。僅供參考，正式規定請以管委會公告或原始文件為準。</p>
+      <div class="ask-chip-row">
+        <button type="button" class="ask-chip" data-q="管理費遲繳會怎麼樣？">管理費遲繳會怎麼樣？</button>
+        <button type="button" class="ask-chip" data-q="亂丟垃圾會怎麼樣？">亂丟垃圾會怎麼樣？</button>
+        <button type="button" class="ask-chip" data-q="裝修保證金要繳多少？">裝修保證金要繳多少？</button>
+      </div>
+      <form id="askForm" class="ask-row">
+        <input type="text" id="askInput" maxlength="200" placeholder="例如：管理費遲繳會怎麼樣？" autocomplete="off">
+        <button type="submit" id="askBtn" class="ask-btn">送出提問</button>
+      </form>
+      <div class="ask-status-row">
+        <span class="ask-loading" id="askLoading"><span class="ask-spin"></span>思考中…</span>
+        <span class="ask-counter" id="askCounter">0 / 200</span>
+      </div>
+      <div class="ask-answer" id="askAnswer"></div>
+    </div>
+
+    <div class="card-grid">
+      <a class="card" href="regulations/06-社區住戶規約.html" target="_blank" rel="noopener">
+        <span class="card-icon">📜</span>
+        <h3>社區住戶規約</h3>
+        <p>專有／共有部分界定、區權人會議、管理委員會組織與財務規範。</p>
+        <span class="card-link">閱讀全文 →</span>
+      </a>
+      <a class="card" href="regulations/01-地下停車場管理辦法.html" target="_blank" rel="noopener">
+        <span class="card-icon">🅿️</span>
+        <h3>地下停車場管理辦法</h3>
+        <p>車輛進出、E-Tag 申請、停車位使用與違規處理規定。</p>
+        <span class="card-link">閱讀全文 →</span>
+      </a>
+      <a class="card" href="regulations/04-公共設施使用管理辦法.html" target="_blank" rel="noopener">
+        <span class="card-icon">🛋️</span>
+        <h3>公共設施使用管理辦法</h3>
+        <p>會議室、健身房、兒童遊戲室的開放時間與使用規則。</p>
+        <span class="card-link">閱讀全文 →</span>
+      </a>
+      <a class="card" href="regulations/03-裝修施工管理辦法.html" target="_blank" rel="noopener">
+        <span class="card-icon">🔨</span>
+        <h3>裝修施工管理辦法</h3>
+        <p>施工申請流程、保證金、施工時間規範及各項附表。</p>
+        <span class="card-link">閱讀全文 →</span>
+      </a>
+      <a class="card" href="regulations/05-環境維護與生活廢棄物管理辦法.html" target="_blank" rel="noopener">
+        <span class="card-icon">🗑️</span>
+        <h3>環境維護與生活廢棄物管理辦法</h3>
+        <p>公共環境維護規範、垃圾與資源回收分類方式。</p>
+        <span class="card-link">閱讀全文 →</span>
+      </a>
+      <a class="card" href="regulations/02-房仲帶客看屋管理辦法.html" target="_blank" rel="noopener">
+        <span class="card-icon">🏠</span>
+        <h3>房仲帶客看屋管理辦法</h3>
+        <p>房仲業者進入社區帶看的證件、時間與清潔費規定。</p>
+        <span class="card-link">閱讀全文 →</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>辦公時間與聯絡方式</h2>
+    <div class="card-grid">
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:1rem;margin:0 0 .3rem;">辦公時間</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;">週一至週五 08:30–17:30</p>
+      </div>
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:1rem;margin:0 0 .3rem;">管理室電話</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;">03-5990857</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <h4>富來大郡社區管理委員會</h4>
+      <p>新竹縣湖口鄉德和路10巷80~88號</p>
+    </div>
+    <div>
+      <h4>辦公時間</h4>
+      <p>週一至週五 08:30–17:30</p>
+    </div>
+    <div>
+      <h4>聯絡方式</h4>
+      <ul>
+        <li>電話：03-5990857</li>
+      </ul>
+    </div>
+    <div class="copyright">© 2026 富來大郡社區管理委員會</div>
+  </div>
+</footer>
+<script src="assets/nav.js"></script>
+<script>
+(function () {
+  var ENDPOINT = 'https://fulaidajun-ai.fulaidajuncommunity.workers.dev/';
+  var form = document.getElementById('askForm');
+  var input = document.getElementById('askInput');
+  var btn = document.getElementById('askBtn');
+  var answerBox = document.getElementById('askAnswer');
+  var loading = document.getElementById('askLoading');
+  var counter = document.getElementById('askCounter');
+  if (!form) return;
+
+  function setLoading(isLoading) {
+    btn.disabled = isLoading;
+    input.disabled = isLoading;
+    loading.classList.toggle('show', isLoading);
+  }
+
+  function updateCounter() {
+    counter.textContent = input.value.length + ' / 200';
+  }
+  input.addEventListener('input', updateCounter);
+
+  function showAnswer(text) {
+    answerBox.textContent = text;
+    answerBox.classList.add('show');
+  }
+
+  function ask(promptText) {
+    var prompt = (promptText != null ? promptText : input.value).trim();
+    if (!prompt) return;
+    if (prompt.length > 200) {
+      showAnswer('提問字數請在 200 字以內，麻煩精簡一下問題內容。');
+      return;
+    }
+    input.value = prompt;
+    updateCounter();
+    setLoading(true);
+    answerBox.classList.remove('show');
+
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt })
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('network');
+        return res.json();
+      })
+      .then(function (data) {
+        showAnswer(data.answer || '暫時無法回答，請稍後再試。');
+      })
+      .catch(function () {
+        showAnswer('連線失敗，請稍後再試，或直接洽詢管理中心 03-5990857。');
+      })
+      .finally(function () {
+        setLoading(false);
+      });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    ask();
+  });
+
+  document.querySelectorAll('.ask-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () { ask(chip.dataset.q); });
+  });
+})();
+</script>
+</body>
+</html>

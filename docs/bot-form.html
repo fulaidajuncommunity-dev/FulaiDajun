@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>富來大郡AI表單</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<!--
+  這是社區 LINE 機器人（community-line-bot）「!選單」儀表板裡，需要打自由文字才能用的
+  指令共用的表單頁。跟網站其他頁面不一樣的地方：
+  - 這頁是給 LIFF（LINE Front-end Framework）用的，只會在 LINE App 內建瀏覽器裡開啟，
+    不是給人從網站導覽點進來的一般頁面，所以刻意不套用 site.css 的 header/nav，維持獨立、
+    極簡、手機直式全螢幕的表單樣式
+  - 同一頁被所有指令共用，靠網址列的 query string 決定要顯示什麼、送出時要組成哪個指令：
+      ?cmd=!卡片%20&title=卡片操作&placeholder=例如：地下室B2漏水已經修好了
+    cmd 是送出時要接在使用者輸入前面的完整指令前綴（含空格），title/placeholder 決定畫面
+    上顯示的文字。之後如果要新增其他指令的表單，不用再開新頁面，在 !選單 儀表板那邊組一個
+    新的按鈕網址就好（見 community-line-bot/src/index.js 的 dashboardFormButton）
+  - 送出後打的是 community-line-bot 這個 Worker 新開的 /api/liff-command，用
+    liff.getIDToken() 拿到的 ID Token 證明「這是誰」，Worker 那邊會拿去跟 LINE 官方的
+    verify 端點驗證，不是隨便什麼人開這個網址都能打指令進去
+  - 2026-08-16：圖文選單開「!選單」原本也是共用這頁（帶 auto=1，登入後直接送出、不顯示
+    表單），但這頁的 DOM 一開始就有 textarea/送出按鈕（只是 disabled），要等 liff.init()
+    跑完才會被 JS 藏起來，中間那段空檔使用者會看到一閃而過的輸入表單，容易誤以為要打字。
+    已經拆成獨立的 bot-auto.html（從一開始就沒有任何表單元素），圖文選單改連去那頁，這頁
+    專心只做「需要打自由文字」的指令表單，不再處理 auto 模式
+-->
+<style>
+  :root {
+    --paper: #faf3e9;
+    --surface: #fffdf8;
+    --ink: #4a3726;
+    --ink-soft: #92795f;
+    --line: #ecddc4;
+    --accent: #e8794f;
+    --accent-ink: #ffffff;
+    --warn-bg: #fdecda;
+    --warn-ink: #ad5b1c;
+    --ok-bg: #eaf6ec;
+    --ok-ink: #2f6b3e;
+    --font-body: -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #211a13; --surface: #2b2119; --ink: #f3e7d8; --ink-soft: #cbb59c;
+      --line: #40311f; --accent: #f0925f; --accent-ink: #211a13;
+      --warn-bg: #3a2c18; --warn-ink: #f0a560; --ok-bg: #223223; --ok-ink: #8fd6a0;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* flex column 預設 min-width:auto 會讓長文字撐開版面，這裡強制允許縮小換行 */
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+    gap: 1rem;
+  }
+  h1 {
+    font-size: 1.15rem;
+    margin: 0;
+  }
+  .hint {
+    color: var(--ink-soft);
+    font-size: .85rem;
+    line-height: 1.5;
+    margin: 0;
+    overflow-wrap: break-word;
+  }
+  textarea {
+    flex: 1;
+    min-height: 40vh;
+    width: 100%;
+    resize: vertical;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: .9rem;
+    font-size: 1rem;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  button {
+    appearance: none;
+    border: none;
+    border-radius: 12px;
+    padding: .95rem;
+    font-size: 1rem;
+    font-weight: 700;
+    background: var(--accent);
+    color: var(--accent-ink);
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: .55;
+    cursor: default;
+  }
+  .status {
+    border-radius: 10px;
+    padding: .75rem .9rem;
+    font-size: .9rem;
+    line-height: 1.5;
+    display: none;
+  }
+  .status.show { display: block; }
+  .status.warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .status.ok { background: var(--ok-bg); color: var(--ok-ink); }
+  /* 2026-08-16 新增：!委員 表單的選填夾檔欄位，只有帶 allowFile=1 的表單才會顯示
+     （見 JS 那段 allowFile 的說明），預設用 inline style="display:none" 藏起來。
+     2026-08-17 從單檔改多檔，多加一行「已選擇的檔案」清單顯示選了哪些檔案 */
+  .file-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-size: .85rem;
+    color: var(--ink-soft);
+  }
+  .file-row input[type="file"] {
+    flex: 1;
+    min-width: 0;
+    font-size: .82rem;
+    color: var(--ink-soft);
+  }
+  .file-row .file-clear {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: .82rem;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+    display: none;
+  }
+  .file-list {
+    font-size: .8rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    overflow-wrap: break-word;
+    display: none;
+  }
+  /* 2026-08-25 新增：!改代碼 表單專用的「要改哪個 repository」複選欄位，只有帶
+     showRepoPicker=1 的表單才會顯示（見 JS 那段 showRepoPicker 的說明），預設用 inline
+     style="display:none" 藏起來，跟 file-row 同一套做法 */
+  .repo-picker {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    font-size: .9rem;
+  }
+  .repo-picker label {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .repo-picker input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--accent);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="display:flex; justify-content:space-between; align-items:baseline; gap:.75rem;">
+    <h1 id="form-title" style="margin:0;">富來大郡AI</h1>
+    <a href="#" id="logout-link" title="登出" aria-label="登出" style="font-size:1.1rem; text-decoration:none; display:none;">🚪</a>
+  </div>
+  <p class="hint" id="form-hint"></p>
+  <div id="status" class="status"></div>
+  <div class="repo-picker" id="repo-picker" style="display:none;">
+    <label><input type="checkbox" id="repo-linebot" value="linebot" checked disabled> Linebot（機器人程式碼）</label>
+    <label><input type="checkbox" id="repo-fulaidajun" value="fulaidajun" disabled> FulaiDajun（前台網站）</label>
+  </div>
+  <textarea id="input" placeholder="請稍候，載入中…" disabled></textarea>
+  <div class="file-row" id="file-row" style="display:none;">
+    <input type="file" id="file-input" multiple disabled>
+    <button type="button" class="file-clear" id="file-clear">清除</button>
+  </div>
+  <p class="file-list" id="file-list"></p>
+  <button id="submit" type="button" disabled>送出</button>
+</div>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+(function () {
+  var LIFF_ID = '2011103776-8KD6wVsP';
+  var API_URL = 'https://community-line-bot.fulaidajuncommunity.workers.dev/api/liff-command';
+
+  // LIFF 的已知行為：從 https://liff.line.me/{liffId}?cmd=...&title=... 這種帶了 query
+  // string 的網址開啟時，LINE 不會把 cmd/title/placeholder 直接放在真正載入的這個頁面的
+  // location.search 上，而是整包塞進一個 liff.state 參數裡（值是原始 query string 再包一層
+  // URL encode，例如 ?liff.state=%3Fcmd%3D...%26title%3D...）。一開始沒注意到這個，
+  // 直接讀 location.search 永遠讀不到 cmd，表單看起來像「網址缺參數」，其實是網址沒解對。
+  // 這裡先看有沒有 liff.state，有的話拆開來當真正的參數來源
+  function resolveQueryParams() {
+    var direct = new URLSearchParams(location.search);
+    var state = direct.get('liff.state');
+    if (!state) return direct;
+    // state 可能長 "?cmd=...&title=..." 或 "cmd=...&title=..."，開頭的 "?" 要先去掉
+    // 才能餵給 URLSearchParams
+    if (state.charAt(0) === '?') state = state.slice(1);
+    return new URLSearchParams(state);
+  }
+
+  // 桌面版 LINE App 沒有內建 LIFF 瀏覽器，點連結會另開外部瀏覽器；如果那個瀏覽器還沒有
+  // LINE 登入 session，liff.login() 會整頁導去 LINE 的登入頁，登入完成後再導回這個頁面。
+  // 2026-08-14 實測發現：這個「真的登入導轉」跑一輪之後，LINE 導回來的網址會把我們自己
+  // 加的 cmd/title/placeholder（不管是直接帶的還是包在 liff.state 裡）弄丟，只留它自己
+  // 內部登入流程用的參數，表單就會誤判成「網址缺少必要參數」。手機版走原生 LIFF 瀏覽器、
+  // 已經是登入狀態就不會發生。解法：拿到參數的當下先存進 sessionStorage，網址上真的讀不到
+  // 的話就退回去讀存起來的這份，撐過中間那次登入導轉
+  var STORAGE_KEY = 'bot-form-params';
+
+  var params = resolveQueryParams();
+  var cmdPrefix = params.get('cmd') || '';
+  var title = params.get('title') || '';
+  var placeholder = params.get('placeholder') || '';
+  var hint = params.get('hint') || '';
+  // !產公告這種需要知道「發到哪個群組」的指令才會帶這個，沒有的話就是私訊身份執行，
+  // 見 community-line-bot 那邊 dashboardFormButton／handleLiffCommand 的說明
+  var groupId = params.get('groupId') || '';
+  // allowFile：這個表單要不要顯示「選擇檔案」欄位（2026-08-16 !委員 表單新增），
+  // 見 community-line-bot 那邊 dashboardFormButton 的說明
+  var allowFile = params.get('allowFile') === '1';
+  // requesterId（2026-08-17 新增）：「!選單」當初的發起人 userId，原樣送回後端比對
+  // idToken 驗證出來的身份是不是同一個人，只有發起人自己能真的送出表單。這裡單純是原樣
+  // 轉發，不用信任這個值本身——後端真正信任的是 idToken，見 handleLiffCommand 的說明
+  var requesterId = params.get('requesterId') || '';
+  // showRepoPicker（2026-08-25 新增，!改代碼 專用）：這個表單要不要顯示「要改哪個
+  // repository」的複選欄位，見 community-line-bot 那邊 dashboardFormButton 的說明，
+  // 跟 allowFile 同一種「query string 帶開關」的做法
+  var showRepoPicker = params.get('showRepoPicker') === '1';
+
+  if (cmdPrefix) {
+    try {
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          cmdPrefix: cmdPrefix, title: title, placeholder: placeholder, hint: hint,
+          groupId: groupId, allowFile: allowFile, requesterId: requesterId,
+          showRepoPicker: showRepoPicker,
+        })
+      );
+    } catch (e) {
+      // sessionStorage 存取失敗（例如瀏覽器擋第三方儲存）不影響這次的正常流程，忽略即可
+    }
+  } else {
+    try {
+      var saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
+      if (saved && saved.cmdPrefix) {
+        cmdPrefix = saved.cmdPrefix;
+        title = saved.title;
+        placeholder = saved.placeholder;
+        hint = saved.hint || '';
+        groupId = saved.groupId || '';
+        allowFile = !!saved.allowFile;
+        requesterId = saved.requesterId || '';
+        showRepoPicker = !!saved.showRepoPicker;
+      }
+    } catch (e) {
+      // 存起來的資料壞掉或讀不到，就照舊走下面「缺少參數」那個分支，不用特別處理
+    }
+  }
+
+  title = title || '富來大郡AI';
+
+  var titleEl = document.getElementById('form-title');
+  var hintEl = document.getElementById('form-hint');
+  var statusEl = document.getElementById('status');
+  var inputEl = document.getElementById('input');
+  var submitEl = document.getElementById('submit');
+  var logoutLinkEl = document.getElementById('logout-link');
+  var fileRowEl = document.getElementById('file-row');
+  var fileInputEl = document.getElementById('file-input');
+  var fileClearEl = document.getElementById('file-clear');
+  var fileListEl = document.getElementById('file-list');
+  var repoPickerEl = document.getElementById('repo-picker');
+  var repoCheckboxes = [document.getElementById('repo-linebot'), document.getElementById('repo-fulaidajun')];
+
+  // 跟 community-line-bot 的 TRELLO_MAX_ATTACHMENT_BYTES／LIFF_FORM_MAX_FILES 用同一組上限
+  // （單檔大小是 Trello 附件本身的硬性大小限制，張數上限見後端註解），client 端先擋掉超過的
+  // 情況，不用等送到後端才發現失敗。2026-08-17 從單檔改多檔。
+  var MAX_FILE_BYTES = 10 * 1024 * 1024;
+  var MAX_FILES = 5;
+
+  titleEl.textContent = title;
+  inputEl.placeholder = placeholder;
+  document.title = title + ' - 富來大郡AI表單';
+  // 2026-08-14 使用者要求把 LINE 儀表板 Flex 卡片上的按鈕用法說明搬到這裡（各自的表單頁），
+  // 讓 Flex 卡片保持精簡。hint 沒帶的話（cmd 也沒帶那個「缺少參數」分支之後會覆蓋這個
+  // element，見下面）就不顯示這一行
+  if (hint) hintEl.textContent = hint;
+  if (allowFile) fileRowEl.style.display = '';
+  if (showRepoPicker) repoPickerEl.style.display = '';
+
+  function showStatus(text, kind) {
+    statusEl.textContent = text;
+    statusEl.className = 'status show' + (kind ? ' ' + kind : '');
+  }
+
+  function setBusy(busy) {
+    inputEl.disabled = busy;
+    submitEl.disabled = busy;
+    submitEl.textContent = busy ? '送出中…' : '送出';
+    if (allowFile) fileInputEl.disabled = busy;
+    if (showRepoPicker) repoCheckboxes.forEach(function (cb) { cb.disabled = busy; });
+  }
+
+  function clearFileSelection() {
+    fileInputEl.value = '';
+    fileClearEl.style.display = 'none';
+    fileListEl.style.display = 'none';
+    fileListEl.textContent = '';
+  }
+
+  fileClearEl.addEventListener('click', clearFileSelection);
+
+  fileInputEl.addEventListener('change', function () {
+    var files = fileInputEl.files ? Array.prototype.slice.call(fileInputEl.files) : [];
+    if (!files.length) {
+      clearFileSelection();
+      return;
+    }
+    if (files.length > MAX_FILES) {
+      showStatus('最多只能選 ' + MAX_FILES + ' 個檔案，麻煩減少後再選一次。', 'warn');
+      clearFileSelection();
+      return;
+    }
+    var oversized = files.filter(function (f) { return f.size > MAX_FILE_BYTES; });
+    if (oversized.length) {
+      showStatus('「' + oversized[0].name + '」超過 10MB，麻煩壓縮或改選較小的檔案。', 'warn');
+      clearFileSelection();
+      return;
+    }
+    statusEl.classList.remove('show');
+    fileClearEl.style.display = '';
+    fileListEl.style.display = '';
+    fileListEl.textContent = '已選擇 ' + files.length + ' 個檔案：' + files.map(function (f) { return f.name; }).join('、');
+  });
+
+  // 把選好的檔案都讀成 base64 data URL（"data:image/jpeg;base64,xxx" 這種格式），送到後端的
+  // JSON body 裡（見 sendCommand），data URL 的 header 部分後端會自己切掉，見
+  // community-line-bot 的 handleLiffCommand 說明。2026-08-17 從單檔改多檔，回傳陣列；
+  // 沒選檔案的話回傳空陣列。任一個檔案讀取失敗就整批視為失敗（跟後端「整批擋下來」的
+  // 原則一致，不會出現「有些檔案附上了、有些沒有」這種使用者搞不清楚狀況的半殘結果）
+  function readSelectedFiles() {
+    var files = fileInputEl && fileInputEl.files ? Array.prototype.slice.call(fileInputEl.files) : [];
+    if (!files.length) return Promise.resolve([]);
+    return Promise.all(files.map(function (file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          resolve({ fileData: reader.result, fileName: file.name, fileType: file.type || 'application/octet-stream' });
+        };
+        reader.onerror = function () {
+          reject(reader.error || new Error('read file failed'));
+        };
+        reader.readAsDataURL(file);
+      });
+    }));
+  }
+
+  // cmd 沒帶（網址組錯、或直接手動開這頁沒帶參數）就不知道要組哪個指令，直接擋下來，
+  // 不要讓使用者打完字才發現送不出去
+  if (!cmdPrefix) {
+    hintEl.textContent = '這個表單網址缺少必要參數，麻煩從「!選單」儀表板重新點一次按鈕進來。';
+    return;
+  }
+
+  if (!window.liff) {
+    showStatus('LIFF SDK 載入失敗，請確認網路連線後重新整理。', 'warn');
+    return;
+  }
+
+  liff.init({ liffId: LIFF_ID }).then(function () {
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+    inputEl.disabled = false;
+    submitEl.disabled = false;
+    if (allowFile) fileInputEl.disabled = false;
+    if (showRepoPicker) repoCheckboxes.forEach(function (cb) { cb.disabled = false; });
+    inputEl.focus();
+    // 登入成功才顯示登出按鈕——如果不小心登入到錯的 LINE 帳號（例如誤用個人帳號而不是
+    // 社區帳號），可以按這裡清掉登入狀態重新選帳號，不用整個關掉再重開
+    logoutLinkEl.style.display = '';
+  }).catch(function (err) {
+    console.error('liff.init failed', err);
+    showStatus('無法連上 LINE 驗證身份，請確認是從 LINE App 裡開啟這個表單。', 'warn');
+  });
+
+  logoutLinkEl.addEventListener('click', function (e) {
+    e.preventDefault();
+    liff.logout();
+    inputEl.disabled = true;
+    submitEl.disabled = true;
+    logoutLinkEl.style.display = 'none';
+    showStatus('已登出，請關閉這個分頁，從「!選單」重新點一次按鈕進來即可用其他帳號登入。', 'ok');
+  });
+
+  submitEl.addEventListener('click', function () {
+    var content = inputEl.value.trim();
+    if (!content) {
+      showStatus('請先輸入內容再送出。', 'warn');
+      return;
+    }
+
+    // 至少要勾一個要改的 repository，沒勾就先擋下來，不用等送到後端才發現失敗
+    // （跟下面 sendCommand 裡「至少要選一個檔案/內容」那類 client 端先擋的原則一致）
+    var selectedRepos = showRepoPicker
+      ? repoCheckboxes.filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.value; })
+      : null;
+    if (showRepoPicker && !selectedRepos.length) {
+      showStatus('請至少勾選一個要修改的 repository。', 'warn');
+      return;
+    }
+
+    setBusy(true);
+    statusEl.className = 'status';
+
+    liff.getIDToken
+      ? sendCommand(liff.getIDToken())
+      : (function () { showStatus('無法取得身份驗證資訊，請重新從 LINE 開啟這個表單。', 'warn'); setBusy(false); })();
+
+    function sendCommand(idToken) {
+      if (!idToken) {
+        showStatus('無法取得身份驗證資訊，請重新從 LINE 開啟這個表單。', 'warn');
+        setBusy(false);
+        return;
+      }
+      // cmdPrefix 原本帶著一個尾端空白（例如 "!查財報 "），但 LIFF 從帶 query string 的網址
+      // 開啟時，會把整包參數包進 liff.state 再多包一層 URL encode（見 resolveQueryParams 的
+      // 說明），這個尾端空白實測會變成一個殘留的字面「+」字元、不會還原成空白（LINE 這段
+      // 行為沒有正式文件，只能實測歸納），組出來的指令會變成「!查財報+6月」這種夾雜「+」的
+      // 字串。大部分走 AI 分類的指令（!產公告／!規約）不受影響，但走死板 regex 比對的指令
+      // （!查財報／!產財報）「+」不算合法空白，直接比對失敗，表單送出後完全沒有任何反應，
+      // 2026-08-15 真的發生過（查財報(表) 輸入月份送出後沒反應）。改成送出時自己組一個乾淨的
+      // 空白，不管 cmdPrefix 尾端殘留的是空白還是「+」都先清掉
+      var cmdText = cmdPrefix.replace(/[+\s]+$/, '') + ' ' + content;
+
+      // 檔案要先讀成 base64（非同步）才能一起送出，讀取失敗（例如檔案被移除、瀏覽器權限問題）
+      // 不該讓整個送出動作卡住，改成不夾檔繼續送，只是提醒一下。2026-08-17 從單檔改多檔，
+      // readSelectedFiles 回傳陣列（可能是空陣列）
+      readSelectedFiles()
+        .catch(function (err) {
+          console.error('read file failed', err);
+          showStatus('檔案讀取失敗，將不夾檔繼續送出…', 'warn');
+          return [];
+        })
+        .then(function (fileInfos) {
+          return fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              idToken: idToken,
+              text: cmdText,
+              content: content,
+              groupId: groupId || undefined,
+              requesterId: requesterId || undefined,
+              repos: selectedRepos || undefined,
+              files: fileInfos && fileInfos.length ? fileInfos : undefined,
+            }),
+          });
+        })
+        .then(function (resp) { return resp.json().then(function (body) { return { ok: resp.ok, body: body }; }); })
+        .then(function (result) {
+          setBusy(false);
+          if (!result.ok || !result.body || !result.body.ok) {
+            showStatus((result.body && result.body.error) || '送出失敗，請稍後再試一次。', 'warn');
+            return;
+          }
+          showStatus('已送出，處理結果會顯示在 LINE 對話裡，這個視窗可以關閉了。', 'ok');
+          inputEl.value = '';
+          if (allowFile) clearFileSelection();
+          if (liff.isInClient && liff.isInClient()) {
+            // 手機走 LINE 內建的 LIFF 瀏覽器，liff.closeWindow() 是官方提供、保證能關閉的方式
+            setTimeout(function () { liff.closeWindow(); }, 1500);
+          } else {
+            // 桌機版 LINE App 沒有內建 LIFF 瀏覽器，這個分頁是「LINE 用系統層級開啟外部
+            // 瀏覽器」開出來的，不是這支 script 自己用 window.open() 開的——瀏覽器基於
+            // 安全限制，只允許分頁是「被 script 開啟」時才能用 window.close() 關掉，
+            // 這種情況呼叫大多會被瀏覽器直接忽略、不會報錯也不會關閉。這裡還是嘗試呼叫
+            // （不同瀏覽器/版本的限制寬鬆程度不一樣，呼叫了才知道），失敗的話上面那句
+            // 「這個視窗可以關閉了」的提示文字就是使用者唯一能依賴的線索，請手動關閉
+            setTimeout(function () {
+              try {
+                window.close();
+              } catch (e) {
+                // 被瀏覽器擋下來的話會丟例外，不影響其他流程，忽略即可
+              }
+            }, 1500);
+          }
+        })
+        .catch(function (err) {
+          console.error('submit failed', err);
+          setBusy(false);
+          showStatus('網路連線失敗，請確認網路後再試一次。', 'warn');
+        });
+    }
+  });
+})();
+</script>
+</body>
+</html>

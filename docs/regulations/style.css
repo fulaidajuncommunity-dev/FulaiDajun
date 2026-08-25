@@ -1,0 +1,235 @@
+/* 富來大郡社區規約辦法 共用樣式
+   目標：正式文書排版，螢幕預覽如紙本，可直接列印/另存為 PDF */
+
+@page {
+  size: A4;
+  margin: 22mm 20mm;
+}
+
+:root {
+  --ink: #1c1c1c;
+  --ink-soft: #55555a;
+  --rule: #b9b9b0;
+  --rule-soft: #e2e1d8;
+  --paper: #fffefb;
+  --canvas: #e9e7de;
+  --accent: #6f4a30;
+  --accent-soft: #f2ede4;
+  --table-head: #efece2;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: "Noto Serif TC", "PMingLiU", "新細明體", "Microsoft JhengHei", serif;
+}
+
+.sheet {
+  max-width: 210mm;
+  min-height: 297mm;
+  margin: 2.5rem auto;
+  padding: 22mm 20mm;
+  background: var(--paper);
+  box-shadow: 0 2px 6px rgba(30,25,15,.08), 0 18px 40px -20px rgba(30,25,15,.35);
+}
+
+/* ---------- 文件抬頭 ---------- */
+.doc-header {
+  text-align: center;
+  border-bottom: 2.5px solid var(--ink);
+  padding-bottom: 1.1rem;
+  margin-bottom: 1.8rem;
+}
+.doc-header .org {
+  font-size: .82rem;
+  letter-spacing: .3em;
+  color: var(--ink-soft);
+  margin: 0 0 .5rem;
+}
+.doc-header h1 {
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  margin: 0;
+}
+.doc-meta {
+  text-align: center;
+  font-size: .78rem;
+  color: var(--ink-soft);
+  margin-top: .9rem;
+  font-family: "Courier New", "Cascadia Mono", monospace;
+}
+
+/* ---------- 內文 ---------- */
+.doc-body {
+  font-size: .96rem;
+  line-height: 2;
+  text-align: justify;
+}
+.doc-body h2 {
+  font-size: 1.06rem;
+  font-weight: 700;
+  margin: 1.6rem 0 .6rem;
+  padding-left: .6rem;
+  border-left: 4px solid var(--accent);
+}
+.doc-body h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 1.1rem 0 .4rem;
+}
+.doc-body p { margin: 0 0 .5rem; }
+.doc-body .indent-1 { margin-left: 1.6em; }
+.doc-body .indent-2 { margin-left: 3.2em; }
+.doc-body .indent-3 { margin-left: 4.6em; }
+
+.note-block {
+  background: var(--accent-soft);
+  border: 1px solid var(--rule-soft);
+  border-radius: 4px;
+  padding: .7rem 1rem;
+  font-size: .84rem;
+  color: var(--ink-soft);
+  margin: 1rem 0;
+}
+
+.footnote {
+  font-size: .8rem;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--rule-soft);
+  margin-top: 2rem;
+  padding-top: .6rem;
+}
+.footnote .mark { font-weight: 700; color: var(--accent); }
+
+/* ---------- 敏感資訊馬賽克（帳號等） ---------- */
+.mosaic {
+  filter: blur(5px);
+  user-select: none;
+  display: inline-block;
+  border-radius: 3px;
+}
+
+/* ---------- 表格 ---------- */
+table.formal {
+  width: 100%;
+  border-collapse: collapse;
+  margin: .8rem 0 1.2rem;
+  font-size: .88rem;
+}
+table.formal th, table.formal td {
+  border: 1px solid var(--ink);
+  padding: .5rem .6rem;
+  vertical-align: top;
+  text-align: left;
+}
+table.formal thead th {
+  background: var(--table-head);
+  font-weight: 700;
+  text-align: center;
+}
+table.formal td.label {
+  background: var(--table-head);
+  font-weight: 600;
+  white-space: nowrap;
+  width: 9.5em;
+}
+table.formal .blank-line {
+  display: inline-block;
+  min-width: 4em;
+  border-bottom: 1px solid var(--ink);
+}
+
+/* ---------- 表單頁專用 ---------- */
+.form-title {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  margin: 0 0 .3rem;
+}
+.form-date-line {
+  text-align: right;
+  font-size: .8rem;
+  color: var(--ink-soft);
+  margin-bottom: .8rem;
+}
+.checkbox-list { font-size: .9rem; line-height: 2.1; }
+.sign-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2.2rem;
+}
+.sign-row .cell {
+  flex: 1;
+  border-top: 1px solid var(--ink);
+  padding-top: .3rem;
+  font-size: .82rem;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.page-break { break-before: page; page-break-before: always; }
+
+/* ---------- 頁尾 ---------- */
+.doc-footer {
+  margin-top: 2.5rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--rule-soft);
+  font-size: .74rem;
+  color: var(--ink-soft);
+  text-align: center;
+  letter-spacing: .05em;
+}
+
+/* ---------- 頁面工具列（返回連結／列印按鈕） ---------- */
+.toolbar-row {
+  max-width: 210mm;
+  margin: 2rem auto 0;
+  padding: 0 20mm;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.back-link {
+  display: inline-block;
+  font-size: .82rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+.back-link:hover { text-decoration: underline; }
+
+.print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-family: inherit;
+  font-size: .84rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  padding: .55rem 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+.print-btn:hover { filter: brightness(1.08); }
+.print-btn:active { filter: brightness(.95); }
+
+@media (max-width: 640px) {
+  .toolbar-row { padding: 0 5mm; }
+}
+
+@media print {
+  body { background: var(--paper); }
+  .sheet { margin: 0 auto; box-shadow: none; }
+  .toolbar-row { display: none; }
+}

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>富來大郡社區</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-page="home">
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">富來大郡社區</span>
+      <span class="brand-sub">FU LAI DA JUN</span>
+    </a>
+    <button class="nav-toggle" aria-label="開啟選單" aria-expanded="false">☰</button>
+    <nav class="site-nav" aria-label="主導覽">
+      <a href="index.html" data-page="home">首頁</a>
+      <a href="announcements.html" data-page="announcements">社區公告欄</a>
+      <a href="about.html" data-page="about">關於社區／管委會</a>
+      <a href="rules-fees.html" data-page="rules-fees">管理費用</a>
+      <a href="facilities.html" data-page="facilities">設施與服務</a>
+      <a href="staff.html" data-page="staff">社區服務人員</a>
+      <a href="bot-guide.html" data-page="bot-guide">機器人開通教學</a>
+      <a href="cleaning.html" data-page="cleaning">清潔排班表</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page">
+  <section class="hero">
+    <p class="eyebrow">歡迎來到</p>
+    <h1>富來大郡社區</h1>
+    <p>一個重視環境維護、住戶安全與社區互動的優質住宅社區。這裡提供社區公告、管委會資訊、管理費用與各項設施服務的最新資訊。</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="announcements.html">查看最新公告</a>
+      <a class="btn btn-ghost" href="about.html">認識管理委員會</a>
+    </div>
+  </section>
+
+  <section class="card-grid">
+    <a class="card" href="announcements.html">
+      <span class="card-icon">📢</span>
+      <h3>社區公告欄</h3>
+      <p>最新管委會公告、活動通知與停水停電等維修資訊。</p>
+      <span class="card-link">前往公告欄 →</span>
+    </a>
+    <a class="card" href="about.html">
+      <span class="card-icon">🏘️</span>
+      <h3>關於社區／管委會</h3>
+      <p>社區簡介、管理委員會組織與辦公聯絡方式。</p>
+      <span class="card-link">認識社區 →</span>
+    </a>
+    <a class="card" href="rules-fees.html">
+      <span class="card-icon">📋</span>
+      <h3>社區管理費用</h3>
+      <p>管理費收費標準與繳費方式說明。</p>
+      <span class="card-link">查看管理費用 →</span>
+    </a>
+    <a class="card" href="facilities.html">
+      <span class="card-icon">🏊</span>
+      <h3>設施與服務</h3>
+      <p>中庭花園、停車場、消防設施等公共設施介紹。</p>
+      <span class="card-link">瀏覽設施 →</span>
+    </a>
+  </section>
+
+  <section class="section">
+    <h2>最新公告</h2>
+    <div class="card-grid" id="home-notice-grid">
+      <p id="home-notice-status" style="color:var(--ink-soft);font-size:.9rem;">公告載入中…</p>
+    </div>
+    <a class="btn btn-outline" href="announcements.html" style="align-self:center;">查看全部公告</a>
+  </section>
+
+  <section class="section">
+    <h2>聯絡資訊</h2>
+    <div class="card-grid">
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:1rem;margin:0 0 .3rem;">辦公時間</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;">週一至週五 08:30–17:30</p>
+      </div>
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:1rem;margin:0 0 .3rem;">管理室電話</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;">03-5990857</p>
+      </div>
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:1rem;margin:0 0 .3rem;">社區地址</h3>
+        <p style="margin:0;color:var(--ink-soft);font-size:.85rem;">新竹縣湖口鄉德和路10巷80~88號</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div>
+      <h4>富來大郡社區管理委員會</h4>
+      <p>新竹縣湖口鄉德和路10巷80~88號</p>
+    </div>
+    <div>
+      <h4>辦公時間</h4>
+      <p>週一至週五 08:30–17:30</p>
+    </div>
+    <div>
+      <h4>聯絡方式</h4>
+      <ul>
+        <li>電話：03-5990857</li>
+      </ul>
+    </div>
+    <div class="copyright">© 2026 富來大郡社區管理委員會</div>
+  </div>
+</footer>
+<script src="assets/nav.js"></script>
+<script>
+// 2026-08-17 改成動態抓取，取代原本寫死在這個檔案裡的靜態公告卡片——資料來源、規則都
+// 跟 announcements.html 那頁一樣（見那頁的說明），只回「目前生效中」的公告，只是首頁這裡
+// 只當「最新消息」預覽用，最多顯示 3 則、每則只截一小段文字，完整內容要點進公告欄頁面看
+(function () {
+  var API_URL = 'https://community-line-bot.fulaidajuncommunity.workers.dev/api/announcements';
+  var MAX_HOME_NOTICES = 3;
+  var EXCERPT_LENGTH = 70;
+  var gridEl = document.getElementById('home-notice-grid');
+  var statusEl = document.getElementById('home-notice-status');
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  // 首頁只是預覽卡片，不需要完整排版——把 sections 全部文字接起來，截一小段當摘要
+  function buildExcerpt(a) {
+    var parts = (a.sections || []).map(function (s) {
+      return s.type === 'list' ? (s.items || []).join('，') : (s.text || '');
+    });
+    var full = parts.join('').trim();
+    if (full.length <= EXCERPT_LENGTH) return full;
+    return full.slice(0, EXCERPT_LENGTH) + '…';
+  }
+
+  function renderNoticeCard(a) {
+    var card = document.createElement('a');
+    card.className = 'card';
+    card.href = 'announcements.html';
+    card.innerHTML =
+      '<span class="tag-pill notice">公告</span>' +
+      '<h3>' + escapeHtml(a.subject) + '</h3>' +
+      '<p>' + escapeHtml(buildExcerpt(a)) + '</p>';
+    return card;
+  }
+
+  fetch(API_URL)
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      var announcements = ((data && data.announcements) || []).slice(0, MAX_HOME_NOTICES);
+      if (!announcements.length) {
+        statusEl.textContent = '目前沒有生效中的公告。';
+        return;
+      }
+      gridEl.innerHTML = '';
+      announcements.forEach(function (a) { gridEl.appendChild(renderNoticeCard(a)); });
+    })
+    .catch(function (err) {
+      console.error('載入公告失敗', err);
+      statusEl.textContent = '公告暫時無法載入，請稍後再試一次。';
+    });
+})();
+</script>
+</body>
+</html>
