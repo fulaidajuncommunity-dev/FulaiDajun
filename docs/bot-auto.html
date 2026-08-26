@@ -19,6 +19,13 @@
   resolveQueryParams 的說明），但只吃 cmd／groupId 這兩個參數，不需要 title/placeholder/
   hint/content——這頁從來不會顯示表單，這些欄位用不到。
 
+  2026-08-26 新增 url 這個第三個模式，跟 cmd 互斥（呼叫端只會帶其中一個）：帶 url 時完全
+  跳過「登入 → 打 /api/liff-command」那條路，改成單純呼叫 liff.openWindow(url, external:
+  true) 強制跳出去用系統瀏覽器（Safari／Chrome）——起因是 community-line-bot 的
+  externalLinkButton（清潔班表／開通教學這兩顆按鈕）發現 LINE 內建瀏覽器不支援
+  window.print()，社區官網規約頁面的「列印／另存 PDF」按鈕點了沒反應，借用這支既有的
+  LIFF app 解決，沒有另外申請新的 app。詳見下面 script 裡 externalUrl 那段的說明。
+
   重要：LIFF 的「Endpoint URL」是跟 LIFF ID 綁死的一對一關係，沒辦法讓同一個 LIFF ID
   同時指向 bot-form.html 又指向這一頁。bot-form.html 繼續用原本既有的那組 LIFF ID
   （結尾 8KD6wVsP，儀表板所有打字表單按鈕共用的那組，不要動）；要讓圖文選單真的連到這頁，
@@ -127,14 +134,38 @@
   // 這頁送出的是完整指令、不會再接使用者輸入，一樣先清掉尾端保險
   var cmd = (params.get('cmd') || '').replace(/[+\s]+$/, '');
   var groupId = params.get('groupId') || '';
-
-  if (!cmd) {
-    showError('這個網址缺少必要參數，麻煩從圖文選單重新點一次。');
-    return;
-  }
+  // url（2026-08-26 新增）：外部連結模式，見 community-line-bot 的 externalLinkButton 說明——
+  // LINE 內建瀏覽器不支援 window.print()，社區官網規約頁面的「列印／另存 PDF」按鈕在裡面點了
+  // 沒反應，這個模式讓 Flex 訊息裡的連結按鈕（清潔班表／開通教學）先繞來這裡，用官方的
+  // liff.openWindow(..., external: true) 強制跳出去用系統瀏覽器。跟 cmd 模式互斥，呼叫端
+  // 只會帶其中一個參數，不會同時出現
+  var externalUrl = params.get('url') || '';
 
   if (!window.liff) {
     showError('LIFF SDK 載入失敗，請確認網路連線後重新整理。');
+    return;
+  }
+
+  if (externalUrl) {
+    // 純粹「開新分頁」的導覽動作，不用登入、不用打 /api/liff-command，比 cmd 那條路更輕量
+    liff.init({ liffId: LIFF_ID }).then(function () {
+      liff.openWindow({ url: externalUrl, external: true });
+      // openWindow 只負責開新分頁，不會自動關掉這個 LIFF 分頁本身——跟 cmd 模式送出後呼叫
+      // liff.closeWindow() 同一個道理，行動裝置上才會回到聊天室，不留一個空白分頁在後面
+      if (liff.isInClient && liff.isInClient()) {
+        liff.closeWindow();
+      }
+    }).catch(function (err) {
+      console.error('liff.init failed (external mode)', err);
+      // liff.init 失敗就退回最原始的行為：至少還能在 LINE 內建瀏覽器裡看到內容，
+      // 只是列印按鈕依然會失效——比完全打不開網頁好
+      location.href = externalUrl;
+    });
+    return;
+  }
+
+  if (!cmd) {
+    showError('這個網址缺少必要參數，麻煩從圖文選單重新點一次。');
     return;
   }
 
