@@ -22,6 +22,7 @@
   .duty-list { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: .5rem; }
   .duty-list li { font-size: .87rem; color: var(--ink-soft); line-height: 1.65; }
   .duty-list li strong { color: var(--ink); font-weight: 700; }
+  .vendor-name { font-weight: 700; color: var(--ink); }
 </style>
 </head>
 <body data-page="staff">
@@ -36,22 +37,6 @@
     <h1>社區服務資訊</h1>
     <p class="lede">社區經理、保全與清潔人員各司其職，共同維護社區的安全、整潔與日常運作；電梯、機電、弱電等專業維護則由各領域的進駐廠商負責，以下分別說明現場人員的職掌分工，以及各項服務的進駐廠商名單。</p>
   </header>
-
-  <section class="section role-section">
-    <div class="role-head">
-      <span class="role-icon">🏢</span>
-      <div>
-        <h2>物業管理公司</h2>
-        <p class="role-en">Property Management Company</p>
-      </div>
-    </div>
-    <p class="role-summary">角色：社區服務的履約主體與支援後盾。</p>
-    <ul class="duty-list">
-      <li><strong>人員調派與人力支援：</strong>提供合格的社區經理、保全與清潔人力，若現場有人員請假或離職，需負責派員代班或補足人力。</li>
-      <li><strong>行政與法規支援：</strong>協助社區辦理區權人會議、法令諮詢（如《公寓大廈管理條例》）、廠商招標督導等。</li>
-      <li><strong>考核與督導：</strong>定期派區幹部（如督導或主管）巡視社區，考核現場人員表現。</li>
-    </ul>
-  </section>
 
   <section class="section role-section">
     <div class="role-head">
@@ -105,50 +90,61 @@
 
   <!-- 2026-08-26 新增：進駐廠商名單，跟上面的「服務團隊」是兩件事——上面是常駐現場的
        人員職掌說明，這裡是社區實際簽約、負責各項專業維護的廠商名單，一個服務項目對一家
-       廠商，跟這個頁面原本只講「人員」的範圍不重疊 -->
+       廠商，跟這個頁面原本只講「人員」的範圍不重疊。
+       每張卡片除了廠商名稱，也補上簡短的服務內容說明——原本「物業管理公司」單獨一個
+       role-section 已移除（跟社區經理／保全／清潔不同，物業公司本身不是常駐現場的人員角色，
+       放在人員表容易混淆），原本那段角色說明改寫濃縮後放進這裡的「物業管理・豐元物業」卡片。 -->
   <section class="section">
     <h2>進駐廠商</h2>
-    <p class="role-summary">社區各項專業維護與服務，分別委由以下廠商負責。</p>
+    <p class="role-summary">社區各項專業維護與服務，分別委由以下廠商負責，各廠商提供的服務內容如下。</p>
     <div class="card-grid">
       <div class="card">
         <span class="card-icon">🏢</span>
         <h3>物業管理</h3>
-        <p>豐元物業</p>
+        <p class="vendor-name">豐元物業</p>
+        <p>提供社區經理、保全與清潔人力調派及代班支援，協助辦理區權人會議、法令諮詢（如《公寓大廈管理條例》）與廠商招標督導，並定期派員考核現場服務品質。</p>
       </div>
       <div class="card">
         <span class="card-icon">🛡️</span>
         <h3>保全</h3>
-        <p>豐元保全</p>
+        <p class="vendor-name">豐元保全</p>
+        <p>派駐保全人員負責門禁管制、訪客與廠商登記、包裹代收，並定期巡邏公共區域，遇突發狀況第一時間應變處理。</p>
       </div>
       <div class="card">
         <span class="card-icon">🚛</span>
         <h3>垃圾清運</h3>
-        <p>統立環保</p>
+        <p class="vendor-name">統立環保</p>
+        <p>定期清運社區一般垃圾與資源回收物，維持垃圾室環境整潔。</p>
       </div>
       <div class="card">
         <span class="card-icon">🧹</span>
         <h3>清潔</h3>
-        <p>鑫澤清潔</p>
+        <p class="vendor-name">鑫澤清潔</p>
+        <p>派駐清潔人員負責大廳、梯廳、中庭等公共區域日常清潔與垃圾分類整理，並配合安排定期大清潔。</p>
       </div>
       <div class="card">
         <span class="card-icon">🛗</span>
         <h3>電梯</h3>
-        <p>永大電梯</p>
+        <p class="vendor-name">永大電梯</p>
+        <p>負責社區客用與貨用電梯的定期保養、安檢與故障維修。</p>
       </div>
       <div class="card">
         <span class="card-icon">⚙️</span>
         <h3>機電／污水／消防維護</h3>
-        <p>國霖機電</p>
+        <p class="vendor-name">國霖機電</p>
+        <p>負責機電設備、污水處理系統與消防安全設施的定期保養與檢測維護。</p>
       </div>
       <div class="card">
         <span class="card-icon">📡</span>
         <h3>弱電</h3>
-        <p>睿達有限公司</p>
+        <p class="vendor-name">睿達有限公司</p>
+        <p>負責社區監視系統、對講機、門禁等弱電設備的維護與故障排除。</p>
       </div>
       <div class="card">
         <span class="card-icon">🫀</span>
         <h3>AED</h3>
-        <p>新光電通</p>
+        <p class="vendor-name">新光電通</p>
+        <p>提供社區 AED（自動體外心臟去顫器）設備建置，並定期保養檢測確保隨時可用。</p>
       </div>
     </div>
   </section>
