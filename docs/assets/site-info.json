@@ -11,7 +11,7 @@
     { "href": "about.html", "page": "about", "label": "關於社區／管委會" },
     { "href": "rules-fees.html", "page": "rules-fees", "label": "管理費用" },
     { "href": "facilities.html", "page": "facilities", "label": "設施與服務" },
-    { "href": "staff.html", "page": "staff", "label": "社區服務人員" },
+    { "href": "staff.html", "page": "staff", "label": "社區服務資訊" },
     { "href": "bot-guide.html", "page": "bot-guide", "label": "機器人開通教學" },
     { "href": "cleaning.html", "page": "cleaning", "label": "清潔排班表" }
   ]
