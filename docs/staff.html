@@ -25,25 +25,10 @@
 </style>
 </head>
 <body data-page="staff">
-<header class="site-header">
-  <div class="site-header-inner">
-    <a class="brand" href="index.html">
-      <span class="brand-mark">富來大郡社區</span>
-      <span class="brand-sub">FU LAI DA JUN</span>
-    </a>
-    <button class="nav-toggle" aria-label="開啟選單" aria-expanded="false">☰</button>
-    <nav class="site-nav" aria-label="主導覽">
-      <a href="index.html" data-page="home">首頁</a>
-      <a href="announcements.html" data-page="announcements">社區公告欄</a>
-      <a href="about.html" data-page="about">關於社區／管委會</a>
-      <a href="rules-fees.html" data-page="rules-fees">管理費用</a>
-      <a href="facilities.html" data-page="facilities">設施與服務</a>
-      <a href="staff.html" data-page="staff">社區服務人員</a>
-      <a href="bot-guide.html" data-page="bot-guide">機器人開通教學</a>
-      <a href="cleaning.html" data-page="cleaning">清潔排班表</a>
-    </nav>
-  </div>
-</header>
+<header class="site-header" id="site-header"></header>
+<!-- 2026-08-26：header 內容改成從 assets/site-info.json 動態注入，見 assets/nav.js。
+     8 個頁面原本各自寫死一份完全相同的 header（社區名稱、導覽連結），改一個連結要記得
+     同步改 8 個檔案，現在單一事實來源改成那份 JSON -->
 
 <div class="page">
   <header class="masthead">
@@ -119,25 +104,9 @@
   </section>
 </div>
 
-<footer class="site-footer">
-  <div class="site-footer-inner">
-    <div>
-      <h4>富來大郡社區管理委員會</h4>
-      <p>新竹縣湖口鄉德和路10巷80~88號</p>
-    </div>
-    <div>
-      <h4>辦公時間</h4>
-      <p>週一至週五 08:30–17:30</p>
-    </div>
-    <div>
-      <h4>聯絡方式</h4>
-      <ul>
-        <li>電話：03-5990857</li>
-      </ul>
-    </div>
-    <div class="copyright">© 2026 富來大郡社區管理委員會</div>
-  </div>
-</footer>
+<footer class="site-footer" id="site-footer"></footer>
+<!-- 2026-08-26：footer 內容（地址、電話、辦公時間）改成從 assets/site-info.json 動態
+     注入，見 assets/nav.js，理由同上面 header 的說明 -->
 <script src="assets/nav.js"></script>
 </body>
 </html>
