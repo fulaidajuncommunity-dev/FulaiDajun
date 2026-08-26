@@ -140,6 +140,12 @@
   // liff.openWindow(..., external: true) 強制跳出去用系統瀏覽器。跟 cmd 模式互斥，呼叫端
   // 只會帶其中一個參數，不會同時出現
   var externalUrl = params.get('url') || '';
+  // 這個 LIFF app 掛在 liff.line.me 這個 LINE 官方網域下，任何人都可以自己組
+  // https://liff.line.me/2011103776-bKqxHWPg?url=<任意網址> 這種連結——如果不驗證
+  // externalUrl 的來源，這一頁就變成一個「開放重導向」（open redirect）：有心人士可以
+  // 拿 LINE 官方網域＋社區官方帳號的信任度，把人導去釣魚網站或其他惡意頁面。只放行我們
+  // 自己 FulaiDajun 這個網域，其他一律擋下來，不呼叫 liff.openWindow
+  var ALLOWED_EXTERNAL_ORIGIN = 'https://fulaidajuncommunity-dev.github.io';
 
   if (!window.liff) {
     showError('LIFF SDK 載入失敗，請確認網路連線後重新整理。');
@@ -147,6 +153,12 @@
   }
 
   if (externalUrl) {
+    var externalOrigin = null;
+    try { externalOrigin = new URL(externalUrl).origin; } catch (e) {}
+    if (externalOrigin !== ALLOWED_EXTERNAL_ORIGIN) {
+      showError('這個連結目標不合法，請從原本的按鈕重新點一次。');
+      return;
+    }
     // 純粹「開新分頁」的導覽動作，不用登入、不用打 /api/liff-command，比 cmd 那條路更輕量
     liff.init({ liffId: LIFF_ID }).then(function () {
       liff.openWindow({ url: externalUrl, external: true });
