@@ -49,7 +49,7 @@
     return (
       '<div class="site-footer-inner">\n' +
       '  <div>\n' +
-      '    <h4>' + info.communityName + '管理委員會</h4>\n' +
+      '    <h4>社區地址</h4>\n' +
       '    <p>' + info.address + '</p>\n' +
       '  </div>\n' +
       '  <div>\n' +
