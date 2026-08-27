@@ -49,7 +49,13 @@
     return (
       '<div class="site-footer-inner">\n' +
       '  <div>\n' +
-      '    <h4>社區地址</h4>\n' +
+      '    <h4>社區地址' +
+      '<a class="map-link" href="https://www.google.com/maps/search/?api=1&query=' +
+        encodeURIComponent(info.communityName) +
+      '" target="_blank" rel="noopener" title="在 Google 地圖開啟" aria-label="在 Google 地圖開啟' + info.communityName + '">' +
+      '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">' +
+      '<path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/>' +
+      '</svg></a></h4>\n' +
       '    <p>' + info.address + '</p>\n' +
       '  </div>\n' +
       '  <div>\n' +
