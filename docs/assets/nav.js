@@ -53,8 +53,10 @@
       '<a class="map-link" href="https://www.google.com/maps/search/?api=1&query=' +
         encodeURIComponent(info.communityName) +
       '" target="_blank" rel="noopener" title="在 Google 地圖開啟" aria-label="在 Google 地圖開啟' + info.communityName + '">' +
-      '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">' +
-      '<path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/>' +
+      // Google 地圖風格的紅色釘（非官方 logo 檔，避開商標規範），內嵌 SVG 免對外請求
+      '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false">' +
+      '<path fill="#EA4335" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>' +
+      '<circle cx="12" cy="9" r="2.5" fill="#fff"/>' +
       '</svg></a></h4>\n' +
       '    <p>' + info.address + '</p>\n' +
       '  </div>\n' +
