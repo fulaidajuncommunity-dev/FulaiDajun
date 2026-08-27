@@ -53,19 +53,19 @@
       '<a class="map-link" href="https://www.google.com/maps/search/?api=1&query=' +
         encodeURIComponent(info.communityName) +
       '" target="_blank" rel="noopener" title="在 Google 地圖開啟" aria-label="在 Google 地圖開啟' + info.communityName + '">' +
-      // Google 地圖風格的彩色圖示（自繪 SVG，非官方 logo 檔以避開商標規範，小尺寸做了簡化）：
-      // 彩色地圖圓 + 右上紅色定位釘，內嵌免對外請求
-      '<svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true" focusable="false">' +
-      '<defs><clipPath id="gm-icon-clip"><circle cx="21" cy="25" r="17"/></clipPath></defs>' +
+      // Google 地圖 App icon 四色版（自繪 SVG，非官方 logo 檔以避開商標規範，小尺寸簡化）：
+      // 綠底 + 右半灰塊 + 左下藍塊 + 黃色與白色細長路 + 右上紅色定位釘，內嵌免對外請求
+      '<svg viewBox="0 0 48 48" width="19" height="19" aria-hidden="true" focusable="false">' +
+      '<defs><clipPath id="gm-icon-clip"><circle cx="22" cy="26" r="17"/></clipPath></defs>' +
       '<g clip-path="url(#gm-icon-clip)">' +
-      '<rect width="48" height="48" fill="#9AA0A6"/>' +
-      '<path d="M0 0h44L0 30Z" fill="#34A853"/>' +
-      '<path d="M0 27l22 21H0Z" fill="#4285F4"/>' +
-      '<path d="M-2 19 46 43 46 33 2 9Z" fill="#FBBC05"/>' +
-      '<path d="M15 3 33 13 12 49 -3 40Z" fill="#fff"/>' +
+      '<rect width="48" height="48" fill="#34A853"/>' +
+      '<path d="M28 0 48 0 48 48 20 48Z" fill="#9AA0A6"/>' +
+      '<path d="M0 20 26 48 0 48Z" fill="#4285F4"/>' +
+      '<path d="M0 23 48 37 48 44 0 30Z" fill="#FBBC05"/>' +
+      '<path d="M15.5 0 20.5 0 28.5 48 23.5 48Z" fill="#fff"/>' +
       '</g>' +
-      '<path fill="#EA4335" d="M33 5a9 9 0 0 0-9 9c0 6.75 9 15 9 15s9-8.25 9-15a9 9 0 0 0-9-9z"/>' +
-      '<circle cx="33" cy="14" r="3.6" fill="#A50E0E"/>' +
+      '<path fill="#EA4335" d="M34 4a9 9 0 0 0-9 9c0 6.75 9 15 9 15s9-8.25 9-15a9 9 0 0 0-9-9z"/>' +
+      '<circle cx="34" cy="13" r="3.6" fill="#A50E0E"/>' +
       '</svg></a></h4>\n' +
       '    <p>' + info.address + '</p>\n' +
       '  </div>\n' +
