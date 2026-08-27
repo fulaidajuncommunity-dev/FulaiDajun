@@ -28,7 +28,7 @@
   /* 版面寬度單一事實來源：header／內容區／footer 共用，要調寬度只改這一行，
      不用再逐一改寫死的 px（過去 1000→1200→1360 是分三個 commit 慢慢試出來的）。
      --prose-max 給純文字段落當「量測寬度」，讓內文行長維持好讀，不隨容器一起變寬。 */
-  --content-max: 1360px;
+  --content-max: 1440px;
   --prose-max: 70ch;
 }
 @media (prefers-color-scheme: dark) {
