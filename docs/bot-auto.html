@@ -161,11 +161,20 @@
     }
     // 純粹「開新分頁」的導覽動作，不用登入、不用打 /api/liff-command，比 cmd 那條路更輕量
     liff.init({ liffId: LIFF_ID }).then(function () {
-      liff.openWindow({ url: externalUrl, external: true });
-      // openWindow 只負責開新分頁，不會自動關掉這個 LIFF 分頁本身——跟 cmd 模式送出後呼叫
-      // liff.closeWindow() 同一個道理，行動裝置上才會回到聊天室，不留一個空白分頁在後面
+      // 2026-08-27 修正：先前不分平台一律呼叫 openWindow，手機版 LINE 內建瀏覽器沒問題
+      // （openWindow 跳出去系統瀏覽器＋closeWindow 關掉這個 LIFF 分頁，體驗完整）；但桌面版
+      // LINE 本來就沒有內建瀏覽器可言，點連結當下就已經在系統瀏覽器分頁裡了——這時還呼叫
+      // openWindow 反而會多開一個新分頁，而且 isInClient() 在桌面版是 false，不會走進
+      // closeWindow 那個分支，這個中繼頁自己就留在原地變成一個沒用的空白分頁，使用者會覺得
+      // 「怎麼多開一個視窗、原本那個又沒關掉」很奇怪（實際回報過的症狀）。
+      // 改成：真的是內建瀏覽器（isInClient 為 true）才需要 openWindow + closeWindow 這套
+      // 「跳出去再關掉自己」的組合；不是的話（桌面版，或本來就是直接用一般瀏覽器打開這個
+      // LIFF 網址）代表已經是系統瀏覽器分頁，不需要另開視窗，原地導向到目的地就好
       if (liff.isInClient && liff.isInClient()) {
+        liff.openWindow({ url: externalUrl, external: true });
         liff.closeWindow();
+      } else {
+        location.href = externalUrl;
       }
     }).catch(function (err) {
       console.error('liff.init failed (external mode)', err);
