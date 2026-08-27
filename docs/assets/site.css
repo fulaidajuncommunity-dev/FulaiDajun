@@ -254,15 +254,16 @@ a.card:hover { border-color: var(--accent); transform: translateY(-3px); box-sha
 .site-footer-inner {
   max-width: var(--content-max); margin: 0 auto;
   /* 舊的 flex + space-between 在寬版面下會把三欄推到最兩側、中間空一大段。
-     改 grid + justify-content: center：整組欄置中，文字也置中，跟版權列與全站
-     置中風格一致，寬版面只是兩側留白。 */
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, max-content));
+     改 flex + justify-content: center：整組欄置中，文字也置中，跟版權列與全站
+     置中風格一致，寬版面只是兩側留白。
+     （grid + auto-fit 在這裡不行：塌掉的空 track 仍佔位，justify-content 沒空間置中） */
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 1.2rem 3rem;
   text-align: center;
 }
-.site-footer-inner > .copyright { grid-column: 1 / -1; }
+.site-footer-inner > .copyright { flex-basis: 100%; }
 .site-footer h4 { font-family: var(--font-display); font-weight: 700; font-size: .95rem; margin: 0 0 .5rem; color: var(--accent); }
 .site-footer p, .site-footer li { font-size: .8rem; color: var(--ink-soft); line-height: 1.7; margin: 0; }
 .site-footer ul { list-style: none; margin: 0; padding: 0; }
