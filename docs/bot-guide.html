@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LINE Bot教學・富來大郡社區</title>
+<title>LINE 機器人開通教學・富來大郡社區</title>
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="stylesheet" href="assets/site.css">
 <style>
@@ -165,6 +165,44 @@
     border-radius: 10px; padding: .6rem .8rem; font-size: .78rem; line-height: 1.5; background: #eaf6ec; color: #2f6b3e;
   }
 
+  /* 2026-08-27 新增：LINE LIFF 授權同意畫面示意——所有「另開一個網頁輸入畫面」的按鈕
+     （聯絡委員、規約辦法、登委、登廠…）背後都是同一支 bot-form.html／bot-auto.html，
+     用 liff.getIDToken() 跟 LINE 換身份權杖來驗證「這是誰」，這一步是 LINE 官方的
+     授權機制，不是社區系統自訂的畫面，所以這裡刻意用示意圖表示、不是真實截圖——
+     使用者自己這支手機通常已經授權過（LINE 記得同意紀錄，重新取消授權要去 LINE
+     設定裡的「已連動的帳號」找到這個官方帳號解除連動才會再跳出來一次），沒辦法臨時
+     拍到那個畫面，用跟頁面其餘 mock 一致的視覺風格重建，讓不熟悉的人一眼認出這是
+     什麼、看到時不會誤以為是可疑彈窗 */
+  .consent-mock {
+    max-width: 300px; margin: 0 auto; border-radius: 18px; overflow: hidden;
+    border: 1px solid var(--line); box-shadow: var(--shadow); background: #fff;
+  }
+  .consent-mock-top {
+    padding: .7rem .9rem; font-size: .78rem; color: #92795f; border-bottom: 1px solid #f1e6d6;
+  }
+  .consent-mock-body { padding: 1.3rem 1.2rem 1.1rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: .7rem; }
+  .consent-mock-icon {
+    width: 3.2rem; height: 3.2rem; border-radius: 50%; background: #6f4a30; color: #fff8ee;
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 800;
+  }
+  .consent-mock-title { font-size: .92rem; font-weight: 700; color: #333; line-height: 1.5; }
+  .consent-mock-list {
+    margin: 0; padding: 0; list-style: none; width: 100%; display: flex; flex-direction: column; gap: .5rem;
+  }
+  .consent-mock-list li {
+    display: flex; align-items: center; gap: .5rem; font-size: .78rem; color: #555;
+    background: #f7f4ee; border-radius: 10px; padding: .55rem .7rem; text-align: left;
+  }
+  .consent-mock-actions { width: 100%; display: flex; flex-direction: column; gap: .55rem; padding: 0 1.2rem 1.2rem; }
+  .consent-mock-btn {
+    border-radius: 10px; padding: .7rem; font-size: .86rem; font-weight: 700; text-align: center;
+  }
+  .consent-mock-btn.agree { background: #06c755; color: #fff; }
+  .consent-mock-btn.cancel { background: transparent; color: #92795f; }
+  .consent-mock-caption {
+    text-align: center; font-size: .74rem; color: var(--ink-soft); margin: .6rem 0 0;
+  }
+
   /* LINE 對話泡泡示意（送出後系統即時回覆） */
   .bubble-row { display: flex; margin-bottom: .55rem; }
   .bubble {
@@ -255,6 +293,48 @@
 
     </div>
     <p class="sub" style="margin:0;">選單展開後，接下來每種身份要點的按鈕不一樣，請往下依你的身份繼續。</p>
+  </section>
+
+  <!-- 2026-08-27 新增：說明「聯絡委員」「登委」「登廠」「規約辦法」這些需要輸入文字的
+       按鈕，背後都是另開一個 LIFF 網頁畫面，第一次使用會先看到 LINE 官方的授權同意畫面。
+       放在三條身份流程分岔之前——不管接下來走哪條路，都會先遇到這個畫面，講一次就好，
+       不用在每條流程裡各自重複說明 -->
+  <section class="section">
+    <h2>🔐 小提醒：點到「輸入畫面」按鈕，可能會先看到這個授權畫面</h2>
+    <p class="sub">聯絡委員、規約辦法、登委、登廠……這些會另開一個輸入畫面的按鈕都會經過這一步，先看過一次比較不會被嚇到</p>
+    <div class="step-list">
+      <div class="step" style="border-left-color:var(--line);">
+        <div class="step-num" style="background:var(--ink-soft);">💡</div>
+        <div>
+          <h3>這是 LINE 官方的授權畫面，不是社區系統要求的</h3>
+          <p>
+            選單卡片上任何需要打字的按鈕（例如「💬 委員」「⚖️ 規約辦法」「👤 登委」「👷 登廠」），背後都是透過 LINE 官方的 LIFF 技術另外開一個輸入畫面，
+            系統要先跟 LINE 確認「這是哪位好友在操作」才能正確處理，這一步是 LINE 官方內建的機制，只會用來辨識身份，不會另外索取電話、地址等其他個資。
+          </p>
+          <p style="margin-top:.6rem;">
+            <strong>第一次</strong>點下這類按鈕，通常會先看到類似下圖的畫面，按「同意並繼續」即可；<strong>已經同意過</strong>的話，這個畫面不會再出現，會直接看到輸入框。
+            如果不小心按到「取消」，回到聊天室重新點一次按鈕再同意一次就好，不會有任何副作用。
+          </p>
+        </div>
+        <div class="step-visual">
+          <div class="consent-mock">
+            <div class="consent-mock-top">‹ 取消</div>
+            <div class="consent-mock-body">
+              <div class="consent-mock-icon">秘</div>
+              <div class="consent-mock-title">《社區秘書》<br>要求存取以下資訊</div>
+              <ul class="consent-mock-list">
+                <li>🙍 個人資料（大頭貼照、暱稱）</li>
+              </ul>
+            </div>
+            <div class="consent-mock-actions">
+              <div class="consent-mock-btn agree">同意並繼續</div>
+              <div class="consent-mock-btn cancel">取消</div>
+            </div>
+          </div>
+          <p class="consent-mock-caption">示意圖，實際畫面文字以 LINE 當下顯示為準</p>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ============ 一般住戶（藍） ============ -->
