@@ -268,6 +268,8 @@ a.card:hover { border-color: var(--accent); transform: translateY(-3px); box-sha
 .site-footer h4 .map-link {
   display: inline-flex; align-items: center; vertical-align: middle;
   margin-inline-start: .3rem;
+  /* icon 的主要量體（地圖圓）偏在 viewBox 下半，視覺上會比文字低，往上推一點對齊 */
+  transform: translateY(-2px);
 }
 .site-footer h4 .map-link:hover { opacity: .7; }
 .site-footer p, .site-footer li { font-size: .8rem; color: var(--ink-soft); line-height: 1.7; margin: 0; }
