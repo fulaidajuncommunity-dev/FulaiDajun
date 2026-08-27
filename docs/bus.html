@@ -26,7 +26,10 @@
   .ldot.dash { background: none; border: 2px dashed var(--ink-soft); }
 
   .bb-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: .2rem -1.7rem 0; padding: .4rem 1.7rem .6rem; }
-  .bb { min-width: 1340px; display: flex; flex-direction: column; gap: .9rem; }
+  /* 舊值寫死 1340px，比 1360px 容器扣掉 padding 後的可用寬（約 1320px）還大，
+     桌機仍會出現一小段橫向捲動。改成「最多 1340px，但容器夠寬時就整張攤平」，
+     窄螢幕才進入捲動。 */
+  .bb { min-width: min(1340px, 100%); display: flex; flex-direction: column; gap: .9rem; }
 
   .lane { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.2rem 1.1rem; }
   .lane.l1 { border-left: 5px solid var(--jia); }

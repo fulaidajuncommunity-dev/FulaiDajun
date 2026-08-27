@@ -7,7 +7,9 @@
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="stylesheet" href="assets/site.css">
 <style>
-  .committee-table { width: 100%; border-collapse: collapse; }
+  /* 只有三欄（職稱／姓名／職掌），width:100% 在寬版面下每欄會分到 400px 以上，
+     「姓名」欄只有三個字卻佔一大格。限制整體寬度，多餘空間留白即可。 */
+  .committee-table { width: 100%; max-width: 760px; border-collapse: collapse; }
   .committee-table th, .committee-table td {
     border: 1px solid var(--line-soft); padding: .6rem .8rem; text-align: left; font-size: .87rem;
   }

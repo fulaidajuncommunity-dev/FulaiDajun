@@ -6,6 +6,19 @@
 <title>富來大郡社區</title>
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="stylesheet" href="assets/site.css">
+<style>
+  /* 最新公告預覽：摘要截斷交給 CSS 依卡片「實際寬度」截行，寬螢幕自然多顯示幾行，
+     不再用寫死的字元數（舊做法在 1360px 寬卡片裡只塞得下一行半，… 之後一大塊留白）。
+     align-items: start 讓每張卡各自依內容高度，短公告不會被拉高留白。 */
+  #home-notice-grid { align-items: start; }
+  #home-notice-grid .card p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    overflow: hidden;
+  }
+</style>
 </head>
 <body data-page="home">
 <header class="site-header" id="site-header"></header>
@@ -89,7 +102,9 @@
 (function () {
   var API_URL = 'https://community-line-bot.fulaidajuncommunity.workers.dev/api/announcements';
   var MAX_HOME_NOTICES = 3;
-  var EXCERPT_LENGTH = 70;
+  // 視覺截斷由 CSS 的 -webkit-line-clamp 依卡片實寬處理（見 <head> 的 style）。
+  // 這裡只留一個寬鬆字數上限，避免把整篇長公告塞進 DOM。
+  var EXCERPT_HARD_CAP = 240;
   var gridEl = document.getElementById('home-notice-grid');
   var statusEl = document.getElementById('home-notice-status');
 
@@ -99,14 +114,15 @@
     return div.innerHTML;
   }
 
-  // 首頁只是預覽卡片，不需要完整排版——把 sections 全部文字接起來，截一小段當摘要
+  // 首頁只是預覽卡片，不需要完整排版——把 sections 全部文字接起來當摘要，
+  // 實際顯示幾行交給 CSS 依卡片寬度決定
   function buildExcerpt(a) {
     var parts = (a.sections || []).map(function (s) {
       return s.type === 'list' ? (s.items || []).join('，') : (s.text || '');
     });
-    var full = parts.join('').trim();
-    if (full.length <= EXCERPT_LENGTH) return full;
-    return full.slice(0, EXCERPT_LENGTH) + '…';
+    var full = parts.join(' ').replace(/\s+/g, ' ').trim();
+    if (full.length <= EXCERPT_HARD_CAP) return full;
+    return full.slice(0, EXCERPT_HARD_CAP) + '…';
   }
 
   function renderNoticeCard(a) {

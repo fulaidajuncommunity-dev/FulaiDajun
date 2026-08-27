@@ -24,6 +24,12 @@
   --font-display: "PingFang TC", "Microsoft JhengHei", "Segoe UI", system-ui, sans-serif;
   --font-body: -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+
+  /* 版面寬度單一事實來源：header／內容區／footer 共用，要調寬度只改這一行，
+     不用再逐一改寫死的 px（過去 1000→1200→1360 是分三個 commit 慢慢試出來的）。
+     --prose-max 給純文字段落當「量測寬度」，讓內文行長維持好讀，不隨容器一起變寬。 */
+  --content-max: 1360px;
+  --prose-max: 70ch;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -45,7 +51,7 @@ body {
 }
 a { color: var(--accent); }
 .page {
-  max-width: 1360px;
+  max-width: var(--content-max);
   margin: 0 auto;
   padding: 2rem 1.25rem 4rem;
   display: flex;
@@ -63,7 +69,7 @@ a { color: var(--accent); }
   box-shadow: 0 2px 10px rgba(0,0,0,.12);
 }
 .site-header-inner {
-  max-width: 1360px;
+  max-width: var(--content-max);
   margin: 0 auto;
   padding: 0 1.25rem;
   display: flex;
@@ -198,7 +204,10 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 1.95rem; mar
 /* ---------- Cards / grid ---------- */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  /* 210px 是為舊的 ~1000px 容器算的（剛好 4 欄）。容器放寬到 1360px 後 auto-fit 會硬塞到
+     6 欄，但每個 grid 通常只有 3～4 張卡，右邊空一大排。min 提到 264px，寬版面下維持
+     4～5 欄、每張卡有合理寬度；min() 包一層避免超窄螢幕溢位。 */
+  grid-template-columns: repeat(auto-fit, minmax(min(264px, 100%), 1fr));
   gap: 1.1rem;
 }
 .card {
@@ -219,6 +228,10 @@ a.card:hover { border-color: var(--accent); transform: translateY(-3px); box-sha
 }
 .section h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; margin: 0; }
 .section .sub { font-size: .8rem; color: var(--ink-soft); margin: -.4rem 0 0; }
+/* 內文段落給一個量測寬度：容器再寬，一行也不會長到難讀。card-grid／表格／表單等
+   非純文字的子元素不受影響（它們不是 .section 的直接 <p>／<ul> 子元素）。 */
+.section > p:not(.sub),
+.section > ul { max-width: var(--prose-max); }
 
 .placeholder-note {
   font-size: .74rem; color: var(--warn-ink); background: var(--warn-bg);
@@ -239,9 +252,14 @@ a.card:hover { border-color: var(--accent); transform: translateY(-3px); box-sha
   background: var(--surface);
 }
 .site-footer-inner {
-  max-width: 1360px; margin: 0 auto;
-  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem;
+  max-width: var(--content-max); margin: 0 auto;
+  /* 舊的 flex + space-between 在 1360px 下會把三欄推到最兩側、中間空一大段。
+     改 grid：欄寬自適應但彼此靠在一起，寬版面只是右側留白，不會散開。 */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, max-content));
+  gap: 1.2rem 3rem;
 }
+.site-footer-inner > .copyright { grid-column: 1 / -1; }
 .site-footer h4 { font-family: var(--font-display); font-weight: 700; font-size: .95rem; margin: 0 0 .5rem; color: var(--accent); }
 .site-footer p, .site-footer li { font-size: .8rem; color: var(--ink-soft); line-height: 1.7; margin: 0; }
 .site-footer ul { list-style: none; margin: 0; padding: 0; }
