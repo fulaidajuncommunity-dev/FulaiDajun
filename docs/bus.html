@@ -93,6 +93,15 @@
   .bb-hint { display: none; text-align: center; font-size: .74rem; color: var(--ink-soft); margin: .5rem 0 0; }
   @media (max-width: 1024px) { .bb-hint { display: block; } }
 
+  /* 「在 Google 地圖看路線」連結（開啟 My Maps 自訂地圖，含 3 條路線與所有停靠站時刻） */
+  .route-map-link {
+    display: inline-flex; align-items: center; gap: .3rem; vertical-align: middle;
+    margin-inline-start: .55rem; font-size: .78rem; font-weight: 600;
+    color: var(--accent); text-decoration: none;
+  }
+  .route-map-link:hover { text-decoration: underline; }
+  .route-map-link svg { width: 18px; height: 18px; transform: translateY(-1px); }
+
   /* ---------- 一週搭車日 ---------- */
   .weekbar { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
   .weekbar li {
@@ -260,8 +269,8 @@
   </section>
 
   <section class="section">
-    <h2>路線總覽</h2>
-    <p class="sub">三種班表一次看懂：平日分「週一・五」與「週二〜四」兩線，週六為單向遊覽線，週日停駛。實線＝去程、虛線＝週六遊覽方向。</p>
+    <h2>路線總覽<a class="route-map-link" href="https://www.google.com/maps/d/viewer?mid=1hPX-mv1b8l9suNcHXF6rBRiWgIzBI44" target="_blank" rel="noopener" title="在 Google 地圖開啟完整路線圖（含所有停靠站與時刻）"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><defs><clipPath id="busmap-clip"><circle cx="22" cy="26" r="17"/></clipPath></defs><g clip-path="url(#busmap-clip)"><rect width="48" height="48" fill="#34A853"/><path d="M28 0 48 0 48 48 20 48Z" fill="#9AA0A6"/><path d="M0 20 26 48 0 48Z" fill="#4285F4"/><path d="M0 23 48 37 48 44 0 30Z" fill="#FBBC05"/><path d="M15.5 0 20.5 0 28.5 48 23.5 48Z" fill="#fff"/></g><path fill="#EA4335" d="M34 4a9 9 0 0 0-9 9c0 6.75 9 15 9 15s9-8.25 9-15a9 9 0 0 0-9-9z"/><circle cx="34" cy="13" r="3.6" fill="#A50E0E"/></svg>在 Google 地圖看</a></h2>
+    <p class="sub">三種班表一次看懂：平日分「週一・五」與「週二〜四」兩線，週六為單向遊覽線，週日停駛。實線＝去程、虛線＝週六遊覽方向。點上方「在 Google 地圖看」可開啟含實際地理位置的完整路線圖。</p>
 
     <div class="bb-legend">
       <span><i class="ldot l1"></i>週一・週五班</span>
