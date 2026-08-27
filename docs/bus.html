@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>社區接駁巴士指南・富來大郡社區</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  /* 本頁專用樣式，全部沿用 site.css 的 design tokens（--jia＝週一・五班、--yi＝週二〜四班、
+     --accent＝週六遊覽、--off＝停駛），深色模式由 site.css 的 prefers-color-scheme 統一處理 */
+
+  .busrule { display: flex; height: 5px; border-radius: 3px; overflow: hidden; margin: 0 auto .5rem; max-width: 220px; }
+  .busrule i { display: block; }
+  .busrule .s1 { flex: 1; background: var(--jia); }
+  .busrule .s2 { flex: 1; background: var(--yi); }
+  .busrule .s6 { flex: .4; background: var(--accent); }
+
+  /* 一週搭車日 */
+  .weekbar { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .weekbar li {
+    background: var(--line-soft); border: 1px solid var(--line);
+    border-top: 3px solid var(--ink-soft); border-radius: 12px;
+    padding: .55rem .35rem .6rem; text-align: center;
+  }
+  .weekbar .dow { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; display: block; }
+  .weekbar .who { font-family: var(--font-mono); font-size: .68rem; color: var(--ink-soft); display: block; margin-top: .2rem; line-height: 1.35; }
+  .weekbar li.wk1 { border-top-color: var(--jia); } .weekbar li.wk1 .who { color: var(--jia); }
+  .weekbar li.wk2 { border-top-color: var(--yi); } .weekbar li.wk2 .who { color: var(--yi); }
+  .weekbar li.wk6 { border-top-color: var(--accent); } .weekbar li.wk6 .who { color: var(--accent); }
+  .weekbar li.wk0 { opacity: .7; } .weekbar li.wk0 .who { color: var(--off); }
+
+  /* 圖例 */
+  .buskeys { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem .55rem; }
+  .buskeys li {
+    display: flex; align-items: center; gap: .5rem;
+    background: var(--line-soft); border: 1px solid var(--line);
+    border-radius: 999px; padding: .38rem .8rem .38rem .55rem; font-size: .8rem;
+  }
+  .buskeys b { font-weight: 700; }
+  .buskeys .muted { color: var(--ink-soft); }
+  .sw { width: 14px; height: 14px; border-radius: 5px; flex: none; }
+  .sw-1 { background: var(--jia); }
+  .sw-2 { background: var(--yi); }
+  .sw-6 { background: var(--accent); }
+  .sw-both { background: linear-gradient(135deg, var(--jia) 0 50%, var(--yi) 50% 100%); }
+
+  /* 路線圖 */
+  .routemap { display: flex; flex-direction: column; }
+  .stop { position: relative; display: grid; grid-template-columns: 56px 1fr; gap: 14px; min-height: 84px; }
+  .node { position: relative; }
+  .node::before {
+    content: ""; position: absolute; left: 50%; transform: translateX(-50%);
+    top: 32px; bottom: -20px; width: 4px; background: var(--line);
+  }
+  .stop:last-child .node::before { display: none; }
+  .dot {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--surface); border: 4px solid var(--yi);
+  }
+  .dot.d1 { border-color: var(--jia); }
+  .dot.d6 { border-color: var(--accent); }
+  .dot.both { border: none; background: linear-gradient(135deg, var(--jia) 0 50%, var(--yi) 50% 100%); }
+  .dot.both::after { content: ""; position: absolute; inset: 5px; background: var(--surface); border-radius: 50%; }
+  .dot.major { width: 26px; height: 26px; top: 8px; border-width: 5px; }
+
+  .info { position: relative; padding: 6px 0 20px 14px; }
+  .info::before {
+    content: ""; position: absolute; left: 0; top: 8px; bottom: 16px;
+    width: 3px; border-radius: 2px; background: var(--yi);
+  }
+  .stop.l1 .info::before { background: var(--jia); }
+  .stop.l6 .info::before { background: var(--accent); }
+  .stop.lboth .info::before { background: linear-gradient(180deg, var(--jia), var(--yi)); }
+  .st-name {
+    font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; line-height: 1.3;
+    display: flex; flex-wrap: wrap; align-items: center; gap: .5rem;
+  }
+  .pill {
+    font-size: .66rem; font-weight: 700; letter-spacing: .06em;
+    padding: .12rem .5rem; border-radius: 999px; border: 1px solid currentColor;
+  }
+  .pill.start { color: var(--jia); }
+  .pill.turn { color: var(--accent); }
+  .pill.branch { color: var(--accent); }
+  .landmarks { color: var(--ink-soft); font-size: .84rem; margin-top: .2rem; }
+  .landmarks em { font-style: normal; color: var(--ink); font-weight: 600; }
+  .busmap-times {
+    margin-top: .4rem; display: flex; flex-wrap: wrap; gap: .3rem .9rem;
+    font-family: var(--font-mono); font-size: .8rem;
+  }
+  .busmap-times span { display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
+  .tk { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+  .tk1 { background: var(--jia); }
+  .tk2 { background: var(--yi); }
+  .tk6 { background: var(--accent); }
+
+  .spur { margin-top: .4rem; border-top: 1px dashed var(--line); padding-top: 1.1rem; }
+  .spur .node::before { background: var(--accent-soft); }
+  .spur-cap {
+    font-family: var(--font-mono); font-size: .76rem; color: var(--accent);
+    font-weight: 700; letter-spacing: .04em; margin: 0 0 .6rem;
+  }
+  .map-note { margin: 1rem 0 0; font-size: .8rem; color: var(--ink-soft); }
+  .map-note b { color: var(--ink); font-weight: 600; }
+
+  /* 整合時刻表 */
+  .legend-dir {
+    display: flex; flex-wrap: wrap; gap: .5rem .9rem;
+    font-size: .8rem; color: var(--ink-soft); margin: 0;
+  }
+  .legend-dir b { color: var(--ink); font-weight: 700; }
+  .bus-tablewrap {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 18px; box-shadow: var(--shadow); overflow-x: auto;
+  }
+  table.bustable { border-collapse: collapse; width: 100%; min-width: 900px; font-size: .8rem; }
+  table.bustable th, table.bustable td {
+    padding: .5rem .5rem; text-align: center;
+    border: 1px solid var(--line-soft); white-space: nowrap;
+  }
+  table.bustable thead th {
+    background: var(--header-bg); color: var(--header-ink);
+    font-weight: 600; font-size: .76rem; line-height: 1.25;
+  }
+  table.bustable thead th small { display: block; font-weight: 400; color: #f0d9c4; font-size: .66rem; }
+  table.bustable th[scope="row"] { text-align: left; background: var(--line-soft); min-width: 116px; }
+  table.bustable tbody .col-key { background: var(--line-soft); font-weight: 600; }
+  table.bustable tbody td {
+    font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink);
+  }
+  table.bustable td.nil { color: var(--line); }
+  table.bustable .grouprow th {
+    text-align: left; background: var(--off-bg);
+    font-family: var(--font-display); font-weight: 800; color: var(--ink);
+  }
+  .buslabel {
+    display: inline-block; font-weight: 700; font-size: .72rem;
+    border-radius: 6px; padding: .1rem .45rem; margin-right: .35rem;
+  }
+  .buslabel.wk1 { color: var(--jia); background: var(--jia-bg); }
+  .buslabel.wk2 { color: var(--yi); background: var(--yi-bg); }
+  .table-caption { text-align: left; color: var(--ink-soft); font-size: .76rem; margin: .7rem 0 0; }
+
+  /* 週六遊覽 */
+  .tour ol { list-style: none; margin: 0; padding: 0; }
+  .tour li { display: grid; grid-template-columns: 58px 1fr; gap: 14px; padding-bottom: 1rem; position: relative; }
+  .tour li:not(:last-child)::before {
+    content: ""; position: absolute; left: 65px;
+    top: 1.6rem; bottom: -.1rem; width: 2px; background: var(--accent-soft);
+  }
+  .tour .clock { font-family: var(--font-mono); color: var(--accent); text-align: right; padding-top: .05rem; }
+  .tour .where { font-family: var(--font-display); font-weight: 700; }
+  .tour .meta { color: var(--ink-soft); font-size: .84rem; margin-top: .1rem; }
+
+  @media (max-width: 560px) {
+    .stop { grid-template-columns: 40px 1fr; }
+    .tour li { grid-template-columns: 50px 1fr; }
+    .tour li:not(:last-child)::before { left: 57px; }
+  }
+  @media print {
+    .site-header, .site-footer { display: none; }
+    .section, .bus-tablewrap, .tour { break-inside: avoid; box-shadow: none; }
+  }
+</style>
+</head>
+<body data-page="bus">
+<header class="site-header" id="site-header"></header>
+
+<div class="page">
+  <header class="masthead">
+    <div class="busrule"><i class="s1"></i><i class="s2"></i><i class="s6"></i></div>
+    <h1>富來大郡／新苑社區接駁巴士指南</h1>
+    <p class="lede">富來大郡與富來新苑為同一條路上的兄弟社區，共用一套接駁巴士；兩社區住戶皆可搭乘，發車時刻依星期分為三種班表。</p>
+  </header>
+
+  <section class="section">
+    <h2>一週搭車日</h2>
+    <p class="sub">週一至週六每天皆有車，週日停駛。顏色對應下方路線圖與時刻表。</p>
+    <ol class="weekbar">
+      <li class="wk1"><span class="dow">一</span><span class="who">07:00 / 13:00</span></li>
+      <li class="wk2"><span class="dow">二</span><span class="who">08:30 / 13:00</span></li>
+      <li class="wk2"><span class="dow">三</span><span class="who">08:30 / 13:00</span></li>
+      <li class="wk2"><span class="dow">四</span><span class="who">08:30 / 13:00</span></li>
+      <li class="wk1"><span class="dow">五</span><span class="who">07:00 / 13:00</span></li>
+      <li class="wk6"><span class="dow">六</span><span class="who">09:30 遊覽</span></li>
+      <li class="wk0"><span class="dow">日</span><span class="who">停駛</span></li>
+    </ol>
+    <ul class="buskeys">
+      <li><span class="sw sw-1"></span><b>週一・週五班</b><span class="muted">上午 07:00・下午 13:00 發</span></li>
+      <li><span class="sw sw-2"></span><b>週二・週三・週四班</b><span class="muted">上午 08:30・下午 13:00 發</span></li>
+      <li><span class="sw sw-6"></span><b>週六遊覽</b><span class="muted">好客文創園區・老街</span></li>
+      <li><span class="sw sw-both"></span><span class="muted">平日各班皆停靠</span></li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>路線圖</h2>
+    <p class="sub">由社區出發，沿湖口火車站、成功路一帶前往湖口國中折返。圓點顏色代表停靠該站的班表：藍＝週一・五，金＝週二〜四，藍金各半＝平日皆停靠。</p>
+
+    <div class="routemap">
+      <div class="stop lboth">
+        <div class="node"><span class="dot both major"></span></div>
+        <div class="info">
+          <div class="st-name">社區發車 <span class="pill start">起點</span></div>
+          <div class="landmarks">富來大郡／富來新苑社區大門（同一條路，兩社區共乘）</div>
+          <div class="busmap-times">
+            <span><i class="tk tk1"></i>週一・五　07:00・13:00</span>
+            <span><i class="tk tk2"></i>週二〜四　08:30・13:00</span>
+            <span><i class="tk tk6"></i>週六　09:30</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stop lboth">
+        <div class="node"><span class="dot both"></span></div>
+        <div class="info">
+          <div class="st-name">湖口火車站前站 <span class="pill branch">週六分岔</span></div>
+          <div class="landmarks">仁慈醫院 ／ 皇將臭豆腐（週二〜四返程）</div>
+        </div>
+      </div>
+
+      <div class="stop lboth">
+        <div class="node"><span class="dot both"></span></div>
+        <div class="info">
+          <div class="st-name">王爺壟運動公園</div>
+          <div class="landmarks">全聯 ／ 湖口高中</div>
+        </div>
+      </div>
+
+      <div class="stop l1">
+        <div class="node"><span class="dot d1"></span></div>
+        <div class="info">
+          <div class="st-name">湖口圖書館</div>
+          <div class="landmarks">信勢國小　<em>（週一・五停靠）</em></div>
+        </div>
+      </div>
+
+      <div class="stop l1">
+        <div class="node"><span class="dot d1"></span></div>
+        <div class="info">
+          <div class="st-name">新湖路口</div>
+          <div class="landmarks">新湖國中 ／ 湖口游泳池　<em>（週一・五停靠）</em></div>
+        </div>
+      </div>
+
+      <div class="stop lboth">
+        <div class="node"><span class="dot both"></span></div>
+        <div class="info">
+          <div class="st-name">成功路停車場 ／ 戶政事務所</div>
+          <div class="landmarks">湖口火車站後站 ／ 戶政・地政事務所 ／ 大埔鐵板燒 ／ 住商不動產</div>
+        </div>
+      </div>
+
+      <div class="stop l1">
+        <div class="node"><span class="dot d1"></span></div>
+        <div class="info">
+          <div class="st-name">中興停車場</div>
+          <div class="landmarks">湖口市場 ／ 湖口鄉公所　<em>（週一・五停靠）</em></div>
+        </div>
+      </div>
+
+      <div class="stop l2">
+        <div class="node"><span class="dot d2"></span></div>
+        <div class="info">
+          <div class="st-name">湖口市場（京讚檳榔攤）</div>
+          <div class="landmarks">湖口市場入口　<em>（週二〜四去程停靠）</em></div>
+        </div>
+      </div>
+
+      <div class="stop l1">
+        <div class="node"><span class="dot d1"></span></div>
+        <div class="info">
+          <div class="st-name">新湖分局</div>
+          <div class="landmarks">湖口衛生所　<em>（週一・五停靠）</em></div>
+        </div>
+      </div>
+
+      <div class="stop lboth">
+        <div class="node"><span class="dot both major"></span></div>
+        <div class="info">
+          <div class="st-name">湖口國中 <span class="pill turn">折返站・終點</span></div>
+          <div class="landmarks">各班次終點站，於此掉頭返回社區</div>
+          <div class="busmap-times">
+            <span><i class="tk tk1"></i>回程 11:00・15:00 發車</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spur">
+      <p class="spur-cap">週六遊覽支線 · 由湖口火車站前站分岔</p>
+      <div class="routemap">
+        <div class="stop l6">
+          <div class="node"><span class="dot d6"></span></div>
+          <div class="info">
+            <div class="st-name">湖口好客文創園區</div>
+            <div class="landmarks">10:00 抵達 · 停留約 1 小時 · 11:05 發車</div>
+          </div>
+        </div>
+        <div class="stop l6">
+          <div class="node"><span class="dot d6"></span></div>
+          <div class="info">
+            <div class="st-name">湖口老街</div>
+            <div class="landmarks">11:30 抵達 · 停留約 2 小時 30 分 · 14:05 發車</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="map-note">
+      週二〜四班的「返程」另停靠 <b>甜蜜蜜水果行</b>（湖口國中後第一站）與 <b>麥當勞</b>（成功路後、火車站前），去程與返程停靠點略有不同，詳見下方時刻表。
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>整合時刻表</h2>
+    <p class="sub">平日兩種班表的發車時間。上半部為去程（往湖口國中），下半部為回程（往社區）。</p>
+
+    <p class="legend-dir">
+      <span><b>去程 →</b> 社區往湖口國中，時間由左至右遞增</span>
+      <span><b>回程 ←</b> 湖口國中往社區，時間由右至左遞增</span>
+      <span><b>—</b> 該班次不停靠此站</span>
+    </p>
+
+    <div class="bus-tablewrap">
+      <table class="bustable">
+        <thead>
+          <tr>
+            <th scope="col">班次</th>
+            <th scope="col">社區<small>發車</small></th>
+            <th scope="col">湖口火車站<small>仁慈醫院</small></th>
+            <th scope="col">王爺壟<small>運動公園</small></th>
+            <th scope="col">麥當勞<small>二〜四返程</small></th>
+            <th scope="col">湖口圖書館<small>信勢國小</small></th>
+            <th scope="col">新湖路口<small>游泳池</small></th>
+            <th scope="col">成功路<small>戶政事務所</small></th>
+            <th scope="col">中興停車場<small>鄉公所</small></th>
+            <th scope="col">湖口市場<small>京讚檳榔攤</small></th>
+            <th scope="col">新湖分局<small>衛生所</small></th>
+            <th scope="col">甜蜜蜜水果行<small>二〜四返程</small></th>
+            <th scope="col">湖口國中<small>折返站</small></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="grouprow"><th colspan="13">去程　往湖口國中 →</th></tr>
+
+          <tr>
+            <th scope="row"><span class="buslabel wk1">一・五</span>上午</th>
+            <td class="col-key">07:00</td><td>07:15</td><td>07:25</td><td class="nil">—</td><td>07:35</td><td>07:40</td><td>07:50</td><td>08:05</td><td class="nil">—</td><td>08:15</td><td class="nil">—</td><td class="col-key">08:25</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="buslabel wk1">一・五</span>下午</th>
+            <td class="col-key">13:00</td><td>13:15</td><td>13:25</td><td class="nil">—</td><td>13:35</td><td>13:40</td><td>13:50</td><td>14:05</td><td class="nil">—</td><td>14:15</td><td class="nil">—</td><td class="col-key">14:25</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="buslabel wk2">二〜四</span>上午</th>
+            <td class="col-key">08:30</td><td>08:45</td><td>08:50</td><td class="nil">—</td><td class="nil">—</td><td class="nil">—</td><td>09:00</td><td class="nil">—</td><td>09:05</td><td class="nil">—</td><td class="nil">—</td><td class="col-key">09:10</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="buslabel wk2">二〜四</span>下午</th>
+            <td class="col-key">13:00</td><td>13:15</td><td>13:20</td><td class="nil">—</td><td class="nil">—</td><td class="nil">—</td><td>13:30</td><td class="nil">—</td><td>13:35</td><td class="nil">—</td><td class="nil">—</td><td class="col-key">13:40</td>
+          </tr>
+
+          <tr class="grouprow"><th colspan="13">回程　往社區 ←</th></tr>
+
+          <tr>
+            <th scope="row"><span class="buslabel wk1">一・五</span>上午</th>
+            <td class="col-key">12:25</td><td>12:15</td><td>12:00</td><td class="nil">—</td><td>11:50</td><td>11:45</td><td>11:35</td><td>11:25</td><td class="nil">—</td><td>11:15</td><td class="nil">—</td><td class="col-key">11:00</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="buslabel wk1">一・五</span>下午</th>
+            <td class="col-key">16:25</td><td>16:15</td><td>16:00</td><td class="nil">—</td><td>15:50</td><td>15:40</td><td>15:35</td><td>15:25</td><td class="nil">—</td><td>15:15</td><td class="nil">—</td><td class="col-key">15:00</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="buslabel wk2">二〜四</span>上午</th>
+            <td class="col-key">11:40</td><td>11:30</td><td class="nil">—</td><td>11:20</td><td class="nil">—</td><td class="nil">—</td><td>11:10</td><td class="nil">—</td><td class="nil">—</td><td class="nil">—</td><td>11:05</td><td class="col-key">11:00</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="buslabel wk2">二〜四</span>下午</th>
+            <td class="col-key">15:40</td><td>15:30</td><td class="nil">—</td><td>15:20</td><td class="nil">—</td><td class="nil">—</td><td>15:10</td><td class="nil">—</td><td class="nil">—</td><td class="nil">—</td><td>15:05</td><td class="col-key">15:00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-caption">時刻依巴士業者提供之時間表整理，站名沿用業者標示之地標。實際發車以現場為準。</p>
+  </section>
+
+  <section class="section">
+    <h2>週六遊覽專車</h2>
+    <p class="sub">單向行駛・含景點停留，整趟去回為同一路線。</p>
+    <div class="tour">
+      <ol>
+        <li><div class="clock">09:30</div><div><div class="where">社區</div><div class="meta">始發站</div></div></li>
+        <li><div class="clock">09:40</div><div><div class="where">湖口火車站前站</div><div class="meta">仁慈醫院</div></div></li>
+        <li><div class="clock">10:00</div><div><div class="where">湖口好客文創園區</div><div class="meta">停留約 1 小時 · 11:05 發車</div></div></li>
+        <li><div class="clock">11:30</div><div><div class="where">湖口老街</div><div class="meta">停留約 2 小時 30 分 · 14:05 發車</div></div></li>
+        <li><div class="clock">14:20</div><div><div class="where">湖口火車站前站</div><div class="meta">仁慈醫院</div></div></li>
+        <li><div class="clock">14:35</div><div><div class="where">社區</div><div class="meta">終點站</div></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="notes">
+    <h2>備註</h2>
+    <ul>
+      <li>富來大郡與富來新苑為同一條路上的兄弟社區，兩社區住戶皆可搭乘同一部接駁巴士。</li>
+      <li>本表由巴士業者提供之時刻表整理彙編，時間如有異動以業者現場公告與司機調度為準。</li>
+      <li>「—」代表該班次不停靠該站；站名沿用業者標示之沿線地標。</li>
+      <li>週二〜四班去程停靠「京讚檳榔攤（湖口市場）」；返程改停「甜蜜蜜水果行」「住商不動產（成功路）」「麥當勞」「皇將臭豆腐（湖口火車站）」。</li>
+      <li>週日停駛。</li>
+    </ul>
+  </div>
+</div>
+
+<footer class="site-footer" id="site-footer"></footer>
+<script src="assets/nav.js"></script>
+</body>
+</html>

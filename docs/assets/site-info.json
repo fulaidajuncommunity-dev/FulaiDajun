@@ -12,6 +12,7 @@
     { "href": "rules-fees.html", "page": "rules-fees", "label": "管理費用" },
     { "href": "facilities.html", "page": "facilities", "label": "設施與服務" },
     { "href": "staff.html", "page": "staff", "label": "社區服務資訊" },
+    { "href": "bus.html", "page": "bus", "label": "社區巴士" },
     { "href": "bot-guide.html", "page": "bot-guide", "label": "LINE Bot教學" },
     { "href": "cleaning.html", "page": "cleaning", "label": "清潔排班表" }
   ]
