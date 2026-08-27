@@ -99,6 +99,10 @@
   .cal-tag { font-size: .68rem; font-weight: 600; border-radius: 6px; padding: 1px 6px; line-height: 1.4; }
   .cal-tag.jia { color: var(--jia); background: var(--jia-bg); }
   .cal-tag.yi { color: var(--yi); background: var(--yi-bg); }
+  .rest-status { font-size: .86rem; color: var(--ink-soft); margin: 0; }
+  .rest-month + .rest-month { margin-top: 1.4rem; padding-top: 1.2rem; border-top: 1px solid var(--line-soft); }
+  .rest-month-label { font-family: var(--font-display); font-weight: 700; font-size: .95rem; margin: 0 0 .5rem; }
+  .rest-warn { margin: .2rem 0 .9rem; font-size: .82rem; color: var(--warn-ink); line-height: 1.6; }
 
   details.source-images {
     background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
@@ -162,75 +166,11 @@
     </ul>
   </div>
 
-  <div class="notes" id="augRestRecord">
-    <h2>8 月排休紀錄（甲、乙員實際休假日，僅供紀錄，不隨上方本週試算調整）</h2>
-    <!-- 2026-08-27：甲員 8 月休假日調整為 2、5、9、10、13、17、20、24、27（原為每週六、二：
-         1、4、8、11、15、18、22、25、29）。乙員維持每週三、日不變。其中 8/2、8/5、8/9
-         甲、乙同日休假，當日無現場清潔人員（管委會已知並接受）。 -->
-    <p style="margin:.2rem 0 .9rem;font-size:.82rem;color:var(--warn-ink);line-height:1.6;">※ <strong>8/2、8/5、8/9</strong> 甲、乙兩員同日排休，當日社區無現場清潔人員。</p>
-    <div class="calendar-wrap">
-      <table class="calendar">
-        <thead>
-          <tr><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th><th>日</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="cal-empty"></td>
-            <td class="cal-empty"></td>
-            <td class="cal-empty"></td>
-            <td class="cal-empty"></td>
-            <td class="cal-empty"></td>
-            <td><div class="cal-date">1</div></td>
-            <td><div class="cal-date">2</div><div class="cal-tags"><span class="cal-tag jia">甲休</span><span class="cal-tag yi">乙休</span></div></td>
-          </tr>
-          <tr>
-            <td><div class="cal-date">3</div></td>
-            <td><div class="cal-date">4</div></td>
-            <td><div class="cal-date">5</div><div class="cal-tags"><span class="cal-tag jia">甲休</span><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">6</div></td>
-            <td><div class="cal-date">7</div></td>
-            <td><div class="cal-date">8</div></td>
-            <td><div class="cal-date">9</div><div class="cal-tags"><span class="cal-tag jia">甲休</span><span class="cal-tag yi">乙休</span></div></td>
-          </tr>
-          <tr>
-            <td><div class="cal-date">10</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">11</div></td>
-            <td><div class="cal-date">12</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">13</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">14</div></td>
-            <td><div class="cal-date">15</div></td>
-            <td><div class="cal-date">16</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-          </tr>
-          <tr>
-            <td><div class="cal-date">17</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">18</div></td>
-            <td><div class="cal-date">19</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">20</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">21</div></td>
-            <td><div class="cal-date">22</div></td>
-            <td><div class="cal-date">23</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-          </tr>
-          <tr>
-            <td><div class="cal-date">24</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">25</div></td>
-            <td><div class="cal-date">26</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-            <td><div class="cal-date">27</div><div class="cal-tags"><span class="cal-tag jia">甲休</span></div></td>
-            <td><div class="cal-date">28</div></td>
-            <td><div class="cal-date">29</div></td>
-            <td><div class="cal-date">30</div><div class="cal-tags"><span class="cal-tag yi">乙休</span></div></td>
-          </tr>
-          <tr>
-            <td><div class="cal-date">31</div></td>
-            <td class="cal-empty"></td>
-            <td class="cal-empty"></td>
-            <td class="cal-empty"></td>
-            <td class="cal-empty"></td>
-            <td class="cal-empty"></td>
-            <td class="cal-empty"></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="notes" id="restRecord">
+    <h2>排休紀錄（甲、乙員實際休假日，僅供紀錄，不隨上方本週試算調整）</h2>
+    <!-- 2026-08-27：這張行事曆改由 assets/cleaning-rest-record.json 動態渲染，
+         見頁尾 script。要調整每月休假日改那份 JSON 就好，不用動這裡的 HTML。 -->
+    <div id="restRecordBody"><p class="rest-status">排休紀錄載入中…</p></div>
   </div>
 
   <details class="source-images">
@@ -441,6 +381,93 @@
 
   render();
   } // end init()
+})();
+</script>
+<script>
+// 排休紀錄行事曆：由 assets/cleaning-rest-record.json 動態渲染。
+// 跟上面「本週休假試算」那段完全獨立——那段是週級別的 what-if，這段是每月實際紀錄。
+// 要調整某月休假日，改那份 JSON 的 off.甲／off.乙 日期陣列即可，不用動 HTML。
+(function () {
+  var mount = document.getElementById('restRecordBody');
+  if (!mount) return;
+
+  var WEEK_HEAD = ['一', '二', '三', '四', '五', '六', '日'];
+  var PERSON_CLASS = { '甲': 'jia', '乙': 'yi' }; // 對應 site.css / 本頁的路線色
+
+  fetch('assets/cleaning-rest-record.json')
+    .then(function (resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp.json();
+    })
+    .then(function (data) {
+      var months = (data && data.months) || [];
+      if (!months.length) {
+        mount.innerHTML = '<p class="rest-status">目前沒有排休紀錄。</p>';
+        return;
+      }
+      // 新的月份排前面，跟 JSON 裡的擺放順序無關
+      months = months.slice().sort(function (a, b) {
+        return (b.year - a.year) || (b.month - a.month);
+      });
+      mount.innerHTML = months.map(renderMonth).join('');
+    })
+    .catch(function (err) {
+      console.error('cleaning.html: 讀取排休紀錄失敗', err);
+      mount.innerHTML = '<p class="rest-status" style="color:var(--warn-ink)">排休紀錄載入失敗，請重新整理，或洽管理中心 03-5990857。</p>';
+    });
+
+  function renderMonth(m) {
+    var year = m.year, month = m.month, off = m.off || {};
+
+    // 日期 -> 當天休假的人員清單
+    var offByDate = {};
+    Object.keys(off).forEach(function (p) {
+      (off[p] || []).forEach(function (d) {
+        (offByDate[d] = offByDate[d] || []).push(p);
+      });
+    });
+    var bothOff = Object.keys(offByDate)
+      .filter(function (d) { return offByDate[d].length >= 2; })
+      .map(Number)
+      .sort(function (a, b) { return a - b; });
+
+    var firstCol = (new Date(year, month - 1, 1).getDay() + 6) % 7; // 週一=0 … 週日=6
+    var daysInMonth = new Date(year, month, 0).getDate();
+
+    var cells = [];
+    for (var i = 0; i < firstCol; i++) cells.push('<td class="cal-empty"></td>');
+    for (var d = 1; d <= daysInMonth; d++) {
+      var tags = (offByDate[d] || []).map(function (p) {
+        return '<span class="cal-tag ' + (PERSON_CLASS[p] || '') + '">' + p + '休</span>';
+      }).join('');
+      cells.push(
+        '<td><div class="cal-date">' + d + '</div>' +
+        (tags ? '<div class="cal-tags">' + tags + '</div>' : '') +
+        '</td>'
+      );
+    }
+    while (cells.length % 7 !== 0) cells.push('<td class="cal-empty"></td>');
+
+    var rows = '';
+    for (var r = 0; r < cells.length; r += 7) {
+      rows += '<tr>' + cells.slice(r, r + 7).join('') + '</tr>';
+    }
+
+    var warn = bothOff.length
+      ? '<p class="rest-warn">※ <strong>' +
+          bothOff.map(function (d) { return month + '/' + d; }).join('、') +
+        '</strong> 甲、乙兩員同日排休，當日社區無現場清潔人員。</p>'
+      : '';
+
+    return '<div class="rest-month">' +
+      '<p class="rest-month-label">' + year + ' 年 ' + month + ' 月</p>' +
+      warn +
+      '<div class="calendar-wrap"><table class="calendar">' +
+      '<thead><tr>' + WEEK_HEAD.map(function (w) { return '<th>' + w + '</th>'; }).join('') + '</tr></thead>' +
+      '<tbody>' + rows + '</tbody>' +
+      '</table></div>' +
+    '</div>';
+  }
 })();
 </script>
 </body>
