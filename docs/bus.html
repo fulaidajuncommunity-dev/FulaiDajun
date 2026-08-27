@@ -93,14 +93,18 @@
   .bb-hint { display: none; text-align: center; font-size: .74rem; color: var(--ink-soft); margin: .5rem 0 0; }
   @media (max-width: 1024px) { .bb-hint { display: block; } }
 
-  /* 「在 Google 地圖看路線」連結（開啟 My Maps 自訂地圖，含 3 條路線與所有停靠站時刻） */
-  .route-map-link {
-    display: inline-flex; align-items: center; gap: .3rem; vertical-align: middle;
-    margin-inline-start: .55rem; font-size: .78rem; font-weight: 600;
-    color: var(--accent); text-decoration: none;
+  /* 每條 lane 標題右側「在 Google 地圖看這條路線」— 連到各路線的 My Maps 自訂地圖 */
+  .lane-maps {
+    margin-inline-start: auto; flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: .45rem;
   }
-  .route-map-link:hover { text-decoration: underline; }
-  .route-map-link svg { width: 18px; height: 18px; transform: translateY(-1px); }
+  .lane-maps .gmap-ico { width: 17px; height: 17px; flex: none; }
+  .lane-maps a {
+    font-size: .78rem; font-weight: 700; color: var(--accent);
+    text-decoration: none; white-space: nowrap;
+  }
+  .lane-maps a:hover { text-decoration: underline; }
+  .lane-maps .sep { color: var(--line); font-size: .78rem; }
 
   /* ---------- 一週搭車日 ---------- */
   .weekbar { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
@@ -239,6 +243,18 @@
     <rect x="6.8" y="16" width="10.4" height="2.6" rx="1.3" fill="#e6b455"/>
     <path d="M12 8v8" stroke="#8a2f28" stroke-width="1"/>
   </symbol>
+  <symbol id="ico-gmap" viewBox="0 0 48 48">
+    <clipPath id="ico-gmap-clip"><circle cx="22" cy="26" r="17"/></clipPath>
+    <g clip-path="url(#ico-gmap-clip)">
+      <rect width="48" height="48" fill="#34A853"/>
+      <path d="M28 0 48 0 48 48 20 48Z" fill="#9AA0A6"/>
+      <path d="M0 20 26 48 0 48Z" fill="#4285F4"/>
+      <path d="M0 23 48 37 48 44 0 30Z" fill="#FBBC05"/>
+      <path d="M15.5 0 20.5 0 28.5 48 23.5 48Z" fill="#fff"/>
+    </g>
+    <path fill="#EA4335" d="M34 4a9 9 0 0 0-9 9c0 6.75 9 15 9 15s9-8.25 9-15a9 9 0 0 0-9-9z"/>
+    <circle cx="34" cy="13" r="3.6" fill="#A50E0E"/>
+  </symbol>
 </svg>
 
 <div class="page">
@@ -269,8 +285,8 @@
   </section>
 
   <section class="section">
-    <h2>路線總覽<a class="route-map-link" href="https://www.google.com/maps/d/viewer?mid=1hPX-mv1b8l9suNcHXF6rBRiWgIzBI44" target="_blank" rel="noopener" title="在 Google 地圖開啟完整路線圖（含所有停靠站與時刻）"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><defs><clipPath id="busmap-clip"><circle cx="22" cy="26" r="17"/></clipPath></defs><g clip-path="url(#busmap-clip)"><rect width="48" height="48" fill="#34A853"/><path d="M28 0 48 0 48 48 20 48Z" fill="#9AA0A6"/><path d="M0 20 26 48 0 48Z" fill="#4285F4"/><path d="M0 23 48 37 48 44 0 30Z" fill="#FBBC05"/><path d="M15.5 0 20.5 0 28.5 48 23.5 48Z" fill="#fff"/></g><path fill="#EA4335" d="M34 4a9 9 0 0 0-9 9c0 6.75 9 15 9 15s9-8.25 9-15a9 9 0 0 0-9-9z"/><circle cx="34" cy="13" r="3.6" fill="#A50E0E"/></svg>在 Google 地圖看</a></h2>
-    <p class="sub">三種班表一次看懂：平日分「週一・五」與「週二〜四」兩線，週六為單向遊覽線，週日停駛。實線＝去程、虛線＝週六遊覽方向。點上方「在 Google 地圖看」可開啟含實際地理位置的完整路線圖。</p>
+    <h2>路線總覽</h2>
+    <p class="sub">三種班表一次看懂：平日分「週一・五」與「週二〜四」兩線，週六為單向遊覽線，週日停駛。實線＝去程、虛線＝週六遊覽方向。各路線標題右側可點「在 Google 地圖看」開啟實際地理位置的路線圖。</p>
 
     <div class="bb-legend">
       <span><i class="ldot l1"></i>週一・週五班</span>
@@ -289,6 +305,10 @@
             <span class="lane-title">週一・週五班</span>
             <span class="lane-days">每週一、五行駛・雙向對開</span>
             <span class="lane-dir">去程 → 湖口國中</span>
+            <span class="lane-maps">
+              <svg class="gmap-ico" aria-hidden="true" focusable="false"><use href="#ico-gmap"/></svg>
+              <a href="https://www.google.com/maps/d/viewer?mid=1lEB9oOX41oIkjyL5YrSnQHGPykTN77Q" target="_blank" rel="noopener" title="在 Google 地圖看週一五線路線">路線</a>
+            </span>
           </div>
           <div class="lane-track">
             <div class="stn">
@@ -359,6 +379,12 @@
             <span class="lane-title">週二・週三・週四班</span>
             <span class="lane-days">每週二、三、四行駛・去回不同路線</span>
             <span class="lane-dir">去程 → 湖口國中</span>
+            <span class="lane-maps">
+              <svg class="gmap-ico" aria-hidden="true" focusable="false"><use href="#ico-gmap"/></svg>
+              <a href="https://www.google.com/maps/d/viewer?mid=1hE5bNntoNEH0w4jWJRhgTeZP_-CXKVg" target="_blank" rel="noopener" title="在 Google 地圖看週二三四線去程路線">去程</a>
+              <span class="sep">·</span>
+              <a href="https://www.google.com/maps/d/viewer?mid=1yP0a_BJCg4j07NZzSFxhc133x_x3RjI" target="_blank" rel="noopener" title="在 Google 地圖看週二三四線回程路線">回程</a>
+            </span>
           </div>
           <div class="lane-track">
             <div class="stn">
@@ -413,6 +439,10 @@
             <span class="lane-title">週六遊覽線</span>
             <span class="lane-days">每週六行駛・單向循環</span>
             <span class="lane-dir">單向循環</span>
+            <span class="lane-maps">
+              <svg class="gmap-ico" aria-hidden="true" focusable="false"><use href="#ico-gmap"/></svg>
+              <a href="https://www.google.com/maps/d/viewer?mid=1hPX-mv1b8l9suNcHXF6rBRiWgIzBI44" target="_blank" rel="noopener" title="在 Google 地圖看週六遊覽線路線">路線</a>
+            </span>
           </div>
           <div class="lane-track">
             <div class="stn">
