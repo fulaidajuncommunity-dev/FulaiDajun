@@ -253,11 +253,14 @@ a.card:hover { border-color: var(--accent); transform: translateY(-3px); box-sha
 }
 .site-footer-inner {
   max-width: var(--content-max); margin: 0 auto;
-  /* 舊的 flex + space-between 在 1360px 下會把三欄推到最兩側、中間空一大段。
-     改 grid：欄寬自適應但彼此靠在一起，寬版面只是右側留白，不會散開。 */
+  /* 舊的 flex + space-between 在寬版面下會把三欄推到最兩側、中間空一大段。
+     改 grid + justify-content: center：整組欄置中，文字也置中，跟版權列與全站
+     置中風格一致，寬版面只是兩側留白。 */
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, max-content));
+  justify-content: center;
   gap: 1.2rem 3rem;
+  text-align: center;
 }
 .site-footer-inner > .copyright { grid-column: 1 / -1; }
 .site-footer h4 { font-family: var(--font-display); font-weight: 700; font-size: .95rem; margin: 0 0 .5rem; color: var(--accent); }
