@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="assets/site.css">
 <style>
   /* 這頁專用樣式：步驟編號、LINE App 情境示意（手機外框、聊天泡泡、圖文選單、LIFF 表單畫面），
-     色票沿用 site.css 既有的 design tokens，示意畫面裡「社區秘書」卡片的顏色（#6f4a30／#fffdf8／
+     色票沿用 site.css 既有的 design tokens，示意畫面裡「功能選單」卡片的顏色（#6f4a30／#fffdf8／
      #92795f）直接對應 community-line-bot 這支 Worker 實際送出的 Flex Message 配色，
      LIFF 表單畫面的配色則對應 bot-form.html 本身的樣式，並非隨意配色。
      三種身份（一般住戶／社區經理・委員／廠商）分別用 --jia（藍）／--accent（橘）／--yi（金）
@@ -111,7 +111,7 @@
   .bounce { display: inline-block; animation: bounce-y 1.2s ease-in-out infinite; }
   @keyframes bounce-y { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
 
-  /* Flex Message 卡片示意（社區秘書指令手冊，內容跟真正的 Worker 送出的一致，
+  /* Flex Message 卡片示意（富來大郡社區服務 功能選單，內容跟真正的 Worker 送出的一致，
      只用 highlight／dim 標出「這一步要點哪一顆」，其餘按鈕刻意淡化避免看錯） */
   .flex-card { border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
   .flex-head { background: #6f4a30; padding: .85rem .9rem; }
@@ -221,7 +221,7 @@
 <div class="page">
   <header class="masthead">
     <p class="eyebrow">使用教學</p>
-    <h1>如何開通「社區秘書」LINE 機器人</h1>
+    <h1>如何開通「富來大郡社區服務」LINE 機器人</h1>
     <p class="lede">
       依身份不同，能用的功能跟開通方式也不一樣：<strong>一般住戶</strong>加好友後就能直接用，
       <strong>社區經理／委員</strong>與<strong>廠商</strong>則要多登記一次身份，經委員審核通過後才會開通。
@@ -258,15 +258,15 @@
       <div class="step" style="border-left-color:var(--line);">
         <div class="step-num" style="background:var(--ink-soft);">1</div>
         <div>
-          <h3>將「社區秘書」加為 LINE 好友</h3>
+          <h3>將「富來大郡社區服務」加為 LINE 好友</h3>
           <p>用 LINE 掃描管委會提供的官方帳號 QR Code，或直接搜尋帳號 ID 加入好友。加入好友後即可看到聊天視窗，還不需要輸入任何指令。</p>
         </div>
         <div class="step-visual">
           <div class="add-friend-box">
-            <img src="assets/line-add-friend-qr.png" alt="社區秘書 LINE 官方帳號加入好友 QR Code">
+            <img src="assets/line-add-friend-qr.png" alt="富來大郡社區服務 LINE 官方帳號加入好友 QR Code">
             <div class="afb-info">
               <p style="margin:0;font-size:.85rem;color:var(--ink-soft);line-height:1.6;">用手機 LINE 掃描左邊的 QR Code，或直接點下方按鈕，會自動開啟 LINE App 跳到加好友畫面（已經是好友的話會直接開啟對話）。</p>
-              <a class="line-add-btn" href="https://line.me/R/ti/p/@940npvic" target="_blank" rel="noopener">💬 加入好友／開啟社區秘書</a>
+              <a class="line-add-btn" href="https://line.me/R/ti/p/@940npvic" target="_blank" rel="noopener">💬 加入好友／開啟富來大郡社區服務</a>
             </div>
           </div>
         </div>
@@ -280,7 +280,7 @@
         </div>
         <div class="step-visual">
           <div class="phone">
-            <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+            <div class="phone-bar"><span class="avatar">富</span>富來大郡社區服務</div>
             <div class="phone-body">
               <div class="richmenu-shot">
                 <img src="assets/richmenu.png" alt="社區秘書 LINE 機器人的圖文選單（rich menu），畫面顯示「社區秘書」與「點我開啟功能選單」">
@@ -320,8 +320,8 @@
           <div class="consent-mock">
             <div class="consent-mock-top">‹ 取消</div>
             <div class="consent-mock-body">
-              <div class="consent-mock-icon">秘</div>
-              <div class="consent-mock-title">《社區秘書》<br>要求存取以下資訊</div>
+              <div class="consent-mock-icon">富</div>
+              <div class="consent-mock-title">《富來大郡社區服務》<br>要求存取以下資訊</div>
               <ul class="consent-mock-list">
                 <li>🙍 個人資料（大頭貼照、暱稱）</li>
               </ul>
@@ -355,14 +355,14 @@
       </div>
       <div class="step-visual">
         <div class="phone">
-          <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+          <div class="phone-bar"><span class="avatar">富</span>富來大郡社區服務</div>
           <div class="phone-body">
             <div class="bubble-row">
               <div style="width:100%;">
-                <p class="bubble-name">社區秘書</p>
+                <p class="bubble-name">富來大郡社區服務</p>
                 <div class="flex-card">
                   <div class="flex-head">
-                    <div class="t1">👩‍💼 社區秘書 指令手冊</div>
+                    <div class="t1">📋 富來大郡社區服務 功能選單</div>
                     <div class="t2">大部分功能限已登記生效的委員使用</div>
                   </div>
                   <div class="flex-body">
@@ -416,14 +416,14 @@
       </div>
       <div class="step-visual">
         <div class="phone">
-          <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+          <div class="phone-bar"><span class="avatar">富</span>富來大郡社區服務</div>
           <div class="phone-body">
             <div class="bubble-row">
               <div style="width:100%;">
-                <p class="bubble-name">社區秘書</p>
+                <p class="bubble-name">富來大郡社區服務</p>
                 <div class="flex-card">
                   <div class="flex-head">
-                    <div class="t1">👩‍💼 社區秘書 指令手冊</div>
+                    <div class="t1">📋 富來大郡社區服務 功能選單</div>
                     <div class="t2">大部分功能限已登記生效的委員使用</div>
                   </div>
                   <div class="flex-body">
@@ -481,11 +481,11 @@
           </div>
         </div>
         <div class="phone">
-          <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+          <div class="phone-bar"><span class="avatar">富</span>富來大郡社區服務</div>
           <div class="phone-body">
             <div class="bubble-row">
               <div>
-                <p class="bubble-name">社區秘書</p>
+                <p class="bubble-name">富來大郡社區服務</p>
                 <div class="bubble">✅ 已收到委員登記：社區經理，已建立待審核卡片，等管委會確認身份後就會生效，生效前沒辦法幫忙轉達詢問。</div>
               </div>
             </div>
@@ -523,14 +523,14 @@
       </div>
       <div class="step-visual">
         <div class="phone">
-          <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+          <div class="phone-bar"><span class="avatar">富</span>富來大郡社區服務</div>
           <div class="phone-body">
             <div class="bubble-row">
               <div style="width:100%;">
-                <p class="bubble-name">社區秘書</p>
+                <p class="bubble-name">富來大郡社區服務</p>
                 <div class="flex-card">
                   <div class="flex-head">
-                    <div class="t1">👩‍💼 社區秘書 指令手冊</div>
+                    <div class="t1">📋 富來大郡社區服務 功能選單</div>
                     <div class="t2">大部分功能限已登記生效的委員使用</div>
                   </div>
                   <div class="flex-body">
@@ -588,11 +588,11 @@
           </div>
         </div>
         <div class="phone">
-          <div class="phone-bar"><span class="avatar">秘</span>社區秘書</div>
+          <div class="phone-bar"><span class="avatar">富</span>富來大郡社區服務</div>
           <div class="phone-body">
             <div class="bubble-row">
               <div>
-                <p class="bubble-name">社區秘書</p>
+                <p class="bubble-name">富來大郡社區服務</p>
                 <div class="bubble">✅ 已收到廠商登記：永大電梯，已建立待審核卡片，等管委會確認身份後就會生效，生效前沒辦法幫忙轉達詢問。</div>
               </div>
             </div>
