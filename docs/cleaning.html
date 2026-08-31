@@ -405,10 +405,10 @@
         mount.innerHTML = '<p class="rest-status">目前沒有排休紀錄。</p>';
         return;
       }
-      // 新的月份排前面，跟 JSON 裡的擺放順序無關
+      // 新的月份排前面，跟 JSON 裡的擺放順序無關；只顯示月份最大的兩個月
       months = months.slice().sort(function (a, b) {
         return (b.year - a.year) || (b.month - a.month);
-      });
+      }).slice(0, 2);
       mount.innerHTML = months.map(renderMonth).join('');
     })
     .catch(function (err) {
