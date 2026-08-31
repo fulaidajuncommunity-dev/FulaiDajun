@@ -179,6 +179,59 @@
     outline: 2px solid var(--accent);
     outline-offset: 1px;
   }
+  /* 2026-08-31 新增：財報「逐筆認領」模式（mode=claim）專用。這個模式從逐筆調整卡片的
+     「填寫／修改」按鈕開啟，網址帶 amt（金額）、sub（日期＋分類）、prefill（目前名稱）、
+     cat（目前分類），把「當下點到的是哪一筆」清楚顯示在頁面上緣，避免點錯筆註記錯。
+     預設 inline style="display:none" 藏起來，只有 mode=claim 才顯示（跟 file-row 同一套做法）。*/
+  .claim-head {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: .9rem 1rem;
+  }
+  .claim-amount {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: .02em;
+  }
+  .claim-sub {
+    color: var(--ink-soft);
+    font-size: .85rem;
+    margin-top: .25rem;
+  }
+  .cat-row { display: none; }
+  .cat-row .cat-label {
+    display: block;
+    font-size: .85rem;
+    color: var(--ink-soft);
+    margin-bottom: .4rem;
+  }
+  .cat-options {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+  }
+  .cat-options label {
+    flex: 1;
+    min-width: 5rem;
+    text-align: center;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .55rem .4rem;
+    font-size: .9rem;
+    background: var(--surface);
+    cursor: pointer;
+  }
+  .cat-options input[type="radio"] { display: none; }
+  .cat-options input[type="radio"]:checked + span {
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .cat-options label:has(input:checked) {
+    border-color: var(--accent);
+    outline: 1px solid var(--accent);
+  }
 </style>
 </head>
 <body>
@@ -189,11 +242,23 @@
   </div>
   <p class="hint" id="form-hint"></p>
   <div id="status" class="status"></div>
+  <div class="claim-head" id="claim-head" style="display:none;">
+    <div class="claim-amount" id="claim-amount"></div>
+    <div class="claim-sub" id="claim-sub"></div>
+  </div>
   <div class="identity-row" id="identity-row" style="display:none;">
     <label for="identity-input">戶號／身份（選填，方便委員辨識是誰）</label>
     <input type="text" id="identity-input" maxlength="60" placeholder="例如：A棟1204、王小姐" disabled>
   </div>
   <textarea id="input" placeholder="請稍候，載入中…" disabled></textarea>
+  <div class="cat-row" id="cat-row">
+    <span class="cat-label">分類（選填，欄位滿的話會先提示、下次調整時生效）</span>
+    <div class="cat-options">
+      <label><input type="radio" name="cat" value="" checked><span>不變更</span></label>
+      <label><input type="radio" name="cat" value="fixed"><span>固定支出</span></label>
+      <label><input type="radio" name="cat" value="nonfixed"><span>非固定支出</span></label>
+    </div>
+  </div>
   <div class="file-row" id="file-row" style="display:none;">
     <input type="file" id="file-input" multiple disabled>
     <button type="button" class="file-clear" id="file-clear">清除</button>
@@ -252,6 +317,14 @@
   // （選填）」單行輸入框，見 community-line-bot 那邊 dashboardFormButton 的說明，一樣是
   // 同一種「query string 帶開關」的做法
   var showIdentityField = params.get('showIdentityField') === '1';
+  // claimMode（2026-08-31 新增，財報「逐筆認領」專用）：mode=claim 時把 amt/sub/prefill/cat
+  // 帶進來的「當下這一筆」顯示在頁面上緣，並多一個分類（固定／非固定）選填欄位。送出時
+  // 會把選到的分類接成「 [固定支出]」/「 [非固定支出]」補在名稱後面，見下面 submit 那段。
+  var claimMode = params.get('mode') === 'claim';
+  var claimAmt = params.get('amt') || '';
+  var claimSub = params.get('sub') || '';
+  var claimPrefill = params.get('prefill') || '';
+  var claimCat = params.get('cat') || '';
 
   if (cmdPrefix) {
     try {
@@ -261,6 +334,8 @@
           cmdPrefix: cmdPrefix, title: title, placeholder: placeholder, hint: hint,
           groupId: groupId, allowFile: allowFile, requesterId: requesterId,
           showIdentityField: showIdentityField,
+          claimMode: claimMode, claimAmt: claimAmt, claimSub: claimSub,
+          claimPrefill: claimPrefill, claimCat: claimCat,
         })
       );
     } catch (e) {
@@ -278,6 +353,11 @@
         allowFile = !!saved.allowFile;
         requesterId = saved.requesterId || '';
         showIdentityField = !!saved.showIdentityField;
+        claimMode = !!saved.claimMode;
+        claimAmt = saved.claimAmt || '';
+        claimSub = saved.claimSub || '';
+        claimPrefill = saved.claimPrefill || '';
+        claimCat = saved.claimCat || '';
       }
     } catch (e) {
       // 存起來的資料壞掉或讀不到，就照舊走下面「缺少參數」那個分支，不用特別處理
@@ -298,6 +378,10 @@
   var fileListEl = document.getElementById('file-list');
   var identityRowEl = document.getElementById('identity-row');
   var identityInputEl = document.getElementById('identity-input');
+  var claimHeadEl = document.getElementById('claim-head');
+  var claimAmountEl = document.getElementById('claim-amount');
+  var claimSubEl = document.getElementById('claim-sub');
+  var catRowEl = document.getElementById('cat-row');
 
   // 跟 community-line-bot 的 TRELLO_MAX_ATTACHMENT_BYTES／LIFF_FORM_MAX_FILES 用同一組上限
   // （單檔大小是 Trello 附件本身的硬性大小限制，張數上限見後端註解），client 端先擋掉超過的
@@ -314,6 +398,20 @@
   if (hint) hintEl.textContent = hint;
   if (allowFile) fileRowEl.style.display = '';
   if (showIdentityField) identityRowEl.style.display = '';
+  if (claimMode) {
+    claimHeadEl.style.display = '';
+    claimAmountEl.textContent = claimAmt ? '$ ' + claimAmt : '';
+    claimSubEl.textContent = claimSub;
+    catRowEl.style.display = 'block';
+    if (claimCat === 'fixed' || claimCat === 'nonfixed') {
+      var pre = document.querySelector('.cat-options input[value="' + claimCat + '"]');
+      if (pre) pre.checked = true;
+    }
+    // 這個模式只填一個名稱，不需要 40vh 高的大輸入框，縮小一點比較不像「要打長篇」
+    inputEl.style.minHeight = '3.5rem';
+    inputEl.setAttribute('rows', '2');
+    if (claimPrefill) inputEl.value = claimPrefill;
+  }
 
   function showStatus(text, kind) {
     statusEl.textContent = text;
@@ -426,6 +524,16 @@
     if (!content) {
       showStatus('請先輸入內容再送出。', 'warn');
       return;
+    }
+
+    // 財報逐筆認領模式：選了「固定支出／非固定支出」的話，接在名稱後面組成
+    // 「名稱 [固定支出]」——後端 handleFinanceTokenClaim 會拆出這個標記寫進認領留言的分類。
+    // 選「不變更」（value 空字串）就維持只送名稱。
+    if (claimMode) {
+      var catSel = document.querySelector('.cat-options input[name="cat"]:checked');
+      var catVal = catSel ? catSel.value : '';
+      if (catVal === 'fixed') content += ' [固定支出]';
+      else if (catVal === 'nonfixed') content += ' [非固定支出]';
     }
 
     setBusy(true);
