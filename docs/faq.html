@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>常見問題・富來大郡社區</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  /* 連結卡：沿用首頁 .card 的外觀，左側放 emoji、右側標題＋一行說明，整張可點 */
+  .link-card { flex-direction: row; align-items: flex-start; gap: .8rem; text-decoration: none; }
+  .link-card .card-icon { font-size: 1.5rem; line-height: 1; flex-shrink: 0; }
+  .link-card .link-body { display: flex; flex-direction: column; gap: .25rem; }
+  .link-card h3 { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin: 0; }
+  .link-card p { margin: 0; font-size: .82rem; color: var(--ink-soft); line-height: 1.55; }
+  .link-card .ext { font-size: .72rem; color: var(--accent); font-weight: 700; }
+
+  /* 常見問題：問題粗體、答案淡色，彼此以細線分隔 */
+  .faq-list { display: flex; flex-direction: column; }
+  .faq-item { padding: .9rem 0; border-top: 1px solid var(--accent-soft); }
+  .faq-item:first-child { border-top: none; padding-top: 0; }
+  .faq-item h3 { font-family: var(--font-display); font-weight: 800; font-size: .98rem; margin: 0 0 .35rem; }
+  .faq-item p { margin: 0; font-size: .86rem; color: var(--ink-soft); line-height: 1.65; }
+  .faq-item a { color: var(--accent); font-weight: 700; }
+
+  /* 智生活 App：說明文字 + 兩個商店按鈕 */
+  .app-block { display: flex; flex-direction: column; gap: .8rem; }
+  .app-block p { margin: 0; font-size: .86rem; color: var(--ink-soft); line-height: 1.65; }
+  .store-row { display: flex; flex-wrap: wrap; gap: .6rem; }
+</style>
+</head>
+<body data-page="faq">
+<header class="site-header" id="site-header"></header>
+<!-- 2026-08-26：header 內容改成從 assets/site-info.json 動態注入，見 assets/nav.js。
+     頁面原本各自寫死一份完全相同的 header（社區名稱、導覽連結），改一個連結要記得
+     同步改每個檔案，現在單一事實來源改成那份 JSON -->
+
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">生活資訊</p>
+    <h1>常見問題</h1>
+    <p class="lede">住戶最常問到的幾個問題，以及戶內設備的操作說明書、社區周邊生活資訊。</p>
+  </header>
+
+  <section class="section app-block">
+    <h2>社區 App：智生活</h2>
+    <p>公設預約、問題反映、電子帳單與繳費、社區公告等日常服務，透過「智生活」App 操作。首次使用請下載後依社區名稱「富來大郡」加入，並向管理室完成住戶身分驗證。</p>
+    <div class="store-row">
+      <a class="btn btn-primary" href="https://apps.apple.com/tw/app/%E6%99%BA%E7%94%9F%E6%B4%BB/id1071519372" target="_blank" rel="noopener">App Store（iPhone）</a>
+      <a class="btn btn-outline" href="https://play.google.com/store/apps/details?id=chk.kingnet.app" target="_blank" rel="noopener">Google Play（Android）</a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>戶內設備操作說明</h2>
+    <p class="sub">建商配置之戶內設備使用手冊，供操作與故障排除參考。</p>
+    <div class="card-grid">
+      <a class="card link-card" href="https://drive.google.com/file/d/1RYm9skriTY_wmXGHx8RXfLfGxtLYfJRC/view" target="_blank" rel="noopener">
+        <span class="card-icon">📞</span>
+        <span class="link-body">
+          <h3>對講機使用手冊</h3>
+          <p>室內對講機操作、大門解鎖、對講與監視功能說明。</p>
+          <span class="ext">PDF・Google 雲端硬碟 →</span>
+        </span>
+      </a>
+      <a class="card link-card" href="https://drive.google.com/file/d/1mBL5Obklrd6I4_Wmt9N29TQiGNgZ_tIn/view" target="_blank" rel="noopener">
+        <span class="card-icon">🔐</span>
+        <span class="link-body">
+          <h3>戶內大門電子鎖說明書</h3>
+          <p>密碼設定與變更、感應卡／鑰匙新增、電池更換與低電量提示。</p>
+          <span class="ext">PDF・Google 雲端硬碟 →</span>
+        </span>
+      </a>
+      <a class="card link-card" href="https://www.youtube.com/watch?v=VgH7CaJd8Ys" target="_blank" rel="noopener">
+        <span class="card-icon">🌀</span>
+        <span class="link-body">
+          <h3>阿拉斯加 浴室暖風乾燥機</h3>
+          <p>暖房、乾燥、涼風、換氣各模式操作教學。</p>
+          <span class="ext">影片・YouTube →</span>
+        </span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>社區周邊</h2>
+    <div class="card-grid">
+      <a class="card link-card" href="https://www.google.com/maps/place/303%E6%96%B0%E7%AB%B9%E7%B8%A3%E6%B9%96%E5%8F%A3%E9%84%89%E5%92%8C%E8%88%88%E8%B7%AF%E5%92%8C%E8%88%88%E3%80%81%E6%9D%B1%E8%88%88%E6%9D%91%E7%A6%8F%E5%BE%B7%E7%A5%A0/data=!4m2!3m1!1s0x34683038371ebab9:0xa6ce34657b6c801e" target="_blank" rel="noopener">
+        <span class="card-icon">⛩️</span>
+        <span class="link-body">
+          <h3>最近的土地公廟（福德祠）</h3>
+          <p>新竹縣湖口鄉東興村・和興路與東興路口，距社區步行可達。</p>
+          <span class="ext">Google 地圖 →</span>
+        </span>
+      </a>
+    </div>
+    <!-- 之後可再補：垃圾車停靠點與時間、鄰近醫療院所、超市／郵局等 —— 需管理室提供實際資訊 -->
+  </section>
+
+  <section class="section">
+    <h2>常見問題</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <h3>管理費怎麼繳？費率多少？</h3>
+        <p>住宅／店面每坪每月 NT$80，汽車位 NT$300、機車位 NT$100。可銀行轉帳、超商代收或信用卡，詳見 <a href="rules-fees.html">管理費用</a> 頁。</p>
+      </div>
+      <div class="faq-item">
+        <h3>設備故障或環境問題要找誰？</h3>
+        <p>請洽管理室 03-5990857（週一至五 08:30–17:30），或透過社區 LINE 官方帳號回報，管理室會建立處理紀錄追蹤。</p>
+      </div>
+      <div class="faq-item">
+        <h3>要裝潢施工，流程怎麼走？</h3>
+        <p>施工前須向管委會提出申請並繳交施工保證金，完工復原後退還。完整規定見 <a href="regulations/03-裝修施工管理辦法.html" target="_blank" rel="noopener">裝修施工管理辦法</a>。</p>
+      </div>
+      <div class="faq-item">
+        <h3>怎麼線上預約公設、反映問題、看電子帳單？</h3>
+        <p>以上都在社區的「智生活」App 操作，下載與加入方式見本頁最上方「社區 App：智生活」。</p>
+      </div>
+      <div class="faq-item">
+        <h3>想知道社區規約怎麼規定？</h3>
+        <p>可到 <a href="about.html">關於社區／管委會</a> 頁用「AI 規約辦法小幫手」直接輸入問題，或翻閱各項管理辦法全文。</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-footer" id="site-footer"></footer>
+<!-- 2026-08-26：footer 內容（地址、電話、辦公時間）改成從 assets/site-info.json 動態
+     注入，見 assets/nav.js -->
+<script src="assets/nav.js"></script>
+</body>
+</html>
